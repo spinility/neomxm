@@ -131,6 +131,15 @@ type CortexResponse struct {
 	Content    []CortexContent `json:"content"`
 	StopReason string          `json:"stop_reason"`
 	Usage      CortexUsage     `json:"usage"`
+	Metadata   CortexMetadata  `json:"metadata"`
+}
+
+type CortexMetadata struct {
+	ExpertUsed  string  `json:"expert_used"`
+	Confidence  float64 `json:"confidence"`
+	Escalated   bool    `json:"escalated"`
+	EscalatedTo string  `json:"escalated_to"`
+	Duration    string  `json:"duration"`
 }
 
 type CortexUsage struct {
@@ -207,6 +216,11 @@ func (c *Client) convertResponse(resp *CortexResponse) *llm.Response {
 			OutputTokens: uint64(resp.Usage.OutputTokens),
 			CostUSD:      resp.Usage.CostUSD,
 		},
+		// Populate cortex metadata
+		ExpertUsed:  resp.Metadata.ExpertUsed,
+		Confidence:  resp.Metadata.Confidence,
+		Escalated:   resp.Metadata.Escalated,
+		EscalatedTo: resp.Metadata.EscalatedTo,
 	}
 
 	// Convert content

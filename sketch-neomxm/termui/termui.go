@@ -177,6 +177,14 @@ func (ui *TermUI) receiveMessagesLoop(ctx context.Context) {
 
 		switch resp.Type {
 		case loop.AgentMessageType:
+			// Display cortex metadata if present
+			if resp.ExpertUsed != "" {
+				metaInfo := fmt.Sprintf("🧠 %s (%.0f%% confidence)", resp.ExpertUsed, resp.Confidence*100)
+				if resp.Model != "" {
+					metaInfo += fmt.Sprintf(" • %s", resp.Model)
+				}
+				ui.AppendSystemMessage("%s", metaInfo)
+			}
 			ui.AppendChatMessage(chatMessage{thinking: thinking, idx: resp.Idx, sender: "🕴️ ", content: resp.Content})
 		case loop.ToolUseMessageType:
 			ui.HandleToolUse(resp)

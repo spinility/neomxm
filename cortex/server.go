@@ -264,6 +264,7 @@ func (s *Server) convertFromLLMResponse(resp *llm.Response, duration time.Durati
 	chatResp := &ChatResponse{
 		ID:         resp.ID,
 		Model:      resp.Model,
+		Expert:     resp.ExpertUsed,
 		Role:       resp.Role.String(),
 		Content:    make([]Content, len(resp.Content)),
 		StopReason: resp.StopReason.String(),
@@ -273,7 +274,11 @@ func (s *Server) convertFromLLMResponse(resp *llm.Response, duration time.Durati
 			CostUSD:      resp.Usage.CostUSD,
 		},
 		Metadata: ExpertMeta{
-			Duration: duration.String(),
+			ExpertUsed:  resp.ExpertUsed,
+			Confidence:  resp.Confidence,
+			Escalated:   resp.Escalated,
+			EscalatedTo: resp.EscalatedTo,
+			Duration:    duration.String(),
 		},
 	}
 

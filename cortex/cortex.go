@@ -149,6 +149,11 @@ func (c *Cortex) routeRequest(ctx context.Context, expertName string, request *l
 		return nil, fmt.Errorf("expert execution failed: %w", err)
 	}
 
+	// Add expert metadata to response
+	resp.ExpertUsed = expertName
+	resp.Confidence = decision.Confidence
+	resp.Reasoning = decision.Reasoning
+
 	// Log performance
 	c.tracker.Log(*perfLog)
 
