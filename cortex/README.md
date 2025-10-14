@@ -1,6 +1,9 @@
-# Cortex - Intelligent Expert System
+# Cortex - NeoMXM's Intelligent Expert System
 
-The Cortex is an intelligent routing system that selects the optimal AI expert for each task based on complexity, cost, and capability.
+> **Part of the NeoMXM Project**  
+> This Cortex system is the brain of NeoMXM, routing development requests to the optimal AI model for each task.
+
+The Cortex is an intelligent routing system that selects the optimal AI expert for each task based on complexity, cost, and capability. It's fully integrated with NeoMXM's development interface (based on Sketch) to provide intelligent, cost-optimized AI assistance.
 
 ## Overview
 

@@ -15,6 +15,12 @@ func TestIntegrationFlow(t *testing.T) {
 
 	config := DefaultConfig()
 	config.ProfilesDir = "profiles"
+	// Mock API keys for testing
+	config.APIKeys = &APIKeys{
+		Anthropic: "test-key",
+		OpenAI:    "test-key",
+		DeepSeek:  "test-key",
+	}
 	cortex, err := NewCortex(config, mockService)
 	if err != nil {
 		t.Fatalf("Failed to initialize cortex: %v", err)

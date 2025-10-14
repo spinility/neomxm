@@ -146,7 +146,9 @@ func (e *Expert) evaluateSecondThought(request *llm.Request) *ExpertDecision {
 }
 
 // Execute asks the expert to execute the request using the LLM service
-func (e *Expert) Execute(ctx context.Context, llmService llm.Service, request *llm.Request) (*llm.Response, *PerformanceLog, error) {
+// If modelRouter is provided, it will be used to route to the correct model based on expert's profile
+// Otherwise, it falls back to using the provided llmService
+func (e *Expert) Execute(ctx context.Context, llmService llm.Service, request *llm.Request, modelRouter *ModelRouter) (*llm.Response, *PerformanceLog, error) {
 	start := time.Now()
 
 	slog.InfoContext(ctx, "Expert executing request", "expert", e.Profile.Name, "model", e.Profile.Model)
@@ -154,8 +156,18 @@ func (e *Expert) Execute(ctx context.Context, llmService llm.Service, request *l
 	// Prepend expert's system prompt to the request
 	enhancedRequest := e.enhanceRequest(request)
 
-	// Execute the request using the LLM service
-	resp, err := llmService.Do(ctx, enhancedRequest)
+	// Execute the request using the appropriate service
+	var resp *llm.Response
+	var err error
+
+	if modelRouter != nil {
+		// Use model router to get the right service for this expert's model
+		resp, err = modelRouter.Do(ctx, e.Profile.Model, enhancedRequest)
+	} else {
+		// Fallback to provided llmService
+		resp, err = llmService.Do(ctx, enhancedRequest)
+	}
+
 	duration := time.Since(start)
 
 	// Create performance log

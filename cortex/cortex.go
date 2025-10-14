@@ -10,10 +10,11 @@ import (
 
 // Cortex is the main orchestrator for the expert system
 type Cortex struct {
-	config     *Config
-	experts    map[string]*Expert
-	tracker    *PerformanceTracker
-	llmService llm.Service
+	config      *Config
+	experts     map[string]*Expert
+	tracker     *PerformanceTracker
+	modelRouter *ModelRouter
+	llmService  llm.Service // Fallback for non-cortex requests
 }
 
 // NewCortex creates a new Cortex instance
@@ -22,17 +23,28 @@ func NewCortex(config *Config, llmService llm.Service) (*Cortex, error) {
 		config = DefaultConfig()
 	}
 
+	// Create model router for expert system
+	modelRouter, err := NewModelRouter(config)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create model router: %w", err)
+	}
+
 	// Load expert profiles
 	profiles, err := LoadAllProfiles(config.ProfilesDir)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load expert profiles: %w", err)
 	}
 
-	// Create experts
+	// Create experts with model overrides from config
 	experts := make(map[string]*Expert)
 	for name, profile := range profiles {
 		// Only load non-meta experts for now
 		if profile.Type != "meta" {
+			// Apply model override if configured
+			if overrideModel, exists := config.ModelOverrides[name]; exists {
+				slog.Info("Applying model override", "expert", name, "original", profile.Model, "override", overrideModel)
+				profile.Model = overrideModel
+			}
 			experts[name] = NewExpert(profile)
 		}
 	}
@@ -41,10 +53,11 @@ func NewCortex(config *Config, llmService llm.Service) (*Cortex, error) {
 	tracker := NewPerformanceTracker(config.LogsDir)
 
 	return &Cortex{
-		config:     config,
-		experts:    experts,
-		tracker:    tracker,
-		llmService: llmService,
+		config:      config,
+		experts:     experts,
+		tracker:     tracker,
+		modelRouter: modelRouter,
+		llmService:  llmService,
 	}, nil
 }
 
@@ -128,8 +141,8 @@ func (c *Cortex) routeRequest(ctx context.Context, expertName string, request *l
 	// Expert will handle the request
 	slog.InfoContext(ctx, "Expert handling request", "expert", expertName)
 
-	// Execute the request
-	resp, perfLog, err := expert.Execute(ctx, c.llmService, request)
+	// Execute the request using model router
+	resp, perfLog, err := expert.Execute(ctx, c.llmService, request, c.modelRouter)
 	if err != nil {
 		c.tracker.Log(*perfLog)
 		_ = c.tracker.Save() // Best effort save

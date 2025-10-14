@@ -1,70 +1,132 @@
 <div align="center">
 
-<img src="https://storage.googleapis.com/sketch-assets/sketch-logo.png" alt="Sketch Logo" width="300"/>
-
-# Sketch-NeoMXM
+# NeoMXM Development Interface
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 
-**Sketch-NeoMXM is an intelligent agentic coding tool powered by a multi-expert cortex system. It draws the 🦉, but smarter.**
+**Intelligent agentic coding powered by NeoMXM's multi-expert cortex system**
 
-> **Built upon [Sketch](https://github.com/boldsoftware/sketch) by [Bold Software](https://github.com/boldsoftware)**  
-> We are grateful to Bold Software for open-sourcing Sketch under the Apache License 2.0.  
-> This project extends Sketch with an intelligent expert system that optimizes performance and cost.
+> **Originally based on [Sketch](https://github.com/boldsoftware/sketch) by [Bold Software](https://github.com/boldsoftware)**  
+> Licensed under Apache License 2.0. NeoMXM has taken full ownership and control of this codebase.  
+> This is now a completely independent project with no compatibility or connection to the original.
 
 </div>
 
 ## 🚀 Overview
 
-Sketch-NeoMXM is an intelligent fork of Sketch that adds a **Cortex** expert system for optimal AI model selection.
+This is the **development interface** for NeoMXM - an intelligent agentic coding system that uses a **Cortex** expert system to optimize AI model selection for every task.
 
-Sketch runs in your terminal, has a web UI, understands your code, and helps
-you get work done. To keep your environment pristine, sketch starts a docker
-container and outputs its work onto a branch in your host git repository.
+### Part of the NeoMXM Project
 
-### What's New in NeoMXM?
+This folder contains the source code from Sketch, adapted to work as NeoMXM's primary development interface. It communicates with NeoMXM's cortex system to:
 
-**Cortex Expert System** - Intelligent routing that automatically selects the best AI model for each task:
-- 📊 **Cost Optimization**: Use cheaper models (gpt-5-nano) for simple tasks
-- ⚡ **Speed**: Fast execution on routine work
-- 🎯 **Quality**: Premium models (Claude Sonnet 4.5) for complex challenges
-- 📈 **Learning**: Performance tracking and continuous improvement
-- 🔧 **Configurable**: YAML-based expert profiles
+- 📊 **Optimize Costs**: Route simple tasks to efficient models (gpt-4o-mini)
+- ⚡ **Maximize Speed**: Fast execution on routine work  
+- 🎯 **Ensure Quality**: Premium models (Claude Sonnet 4.5) for complex challenges
+- 📈 **Learn & Improve**: Track performance and continuously optimize
+- 🔧 **Stay Flexible**: Configure expert profiles for your specific needs
 
-See [cortex/README.md](cortex/README.md) for detailed documentation.
+### How It Works
 
-Sketch helps with most programming environments, but Sketch has extra goodies for Go.
+Instead of calling Claude's API directly, this interface routes requests through **NeoMXM's Cortex**:
+
+```
+Your Request → Development Interface → Cortex Expert System → Best Model for Task
+```
+
+The Cortex intelligently chooses between:
+- **FirstAttendant** (Tier 1): Fast, cheap models for simple tasks
+- **SecondThought** (Tier 2): Balanced models for complex reasoning
+- **Elite** (Tier 3): Premium models for the most challenging work
+
+See [cortex/README.md](cortex/README.md) for detailed Cortex documentation.
+
+### Core Features
+
+- Terminal and web UI interfaces
+- Docker containerization for clean environments
+- Git integration for seamless workflow
+- Tool use and code execution
+- Multi-provider AI support (Anthropic, OpenAI, DeepSeek)
+- Intelligent cost optimization
 
 <img src="https://storage.googleapis.com/sketch-assets/screenshot.jpg" alt="Sketch Screenshot" width="800"/>
 
 ## 📋 Quick Start
 
-### Install via Homebrew
+### Prerequisites
+
+1. **Docker**: Required for containerization
+   - MacOS: `brew install colima` or [OrbStack](https://orbstack.dev/) or [Docker Desktop](https://www.docker.com/products/docker-desktop/)
+   - Linux: `apt install docker.io` (or equivalent for your distro)
+   - WSL2: Install Docker Desktop for Windows
+
+2. **API Keys**: At least one API key is required
+   - **Anthropic** (Claude models): Get your key from [console.anthropic.com](https://console.anthropic.com/)
+   - **OpenAI** (GPT models): Get your key from [platform.openai.com](https://platform.openai.com/)
+   - **DeepSeek** (DeepSeek models): Get your key from [platform.deepseek.com](https://platform.deepseek.com/)
+
+### Installation
+
+#### Build from source
+
+This is part of the NeoMXM project. Build from the sketch-neomxm directory:
 
 ```sh
-brew install boldsoftware/tap/sketch
+cd sketch-neomxm
+make
 ```
 
-Update to the latest version by running `brew upgrade boldsoftware/tap/sketch`.
+### Configuration
 
-### Install via GitHub Releases
-
-Grab the most recent [nightly release](https://github.com/boldsoftware/sketch/releases).
-
-Update by running `sketch -update`.
-
-### Build from source
-
-Clone this repo, and then run:
+1. **Copy the example configuration:**
 
 ```sh
-$ make
-$ ./sketch
+cp .env.example .env
 ```
+
+2. **Edit `.env` and add your API keys:**
+
+```bash
+# Required: At least one API key
+ANTHROPIC_API_KEY=sk-ant-your-key-here
+OPENAI_API_KEY=sk-your-openai-key-here
+DEEPSEEK_API_KEY=your-deepseek-key-here
+
+# Optional: Configure model selection per expert
+CORTEX_MODEL_FIRSTATTENDANT=gpt-5-nano        # Fast, cheap tasks
+CORTEX_MODEL_SECONDTHOUGHT=claude-sonnet-4.5  # Complex reasoning
+CORTEX_MODEL_ELITE=claude-opus-4              # Most challenging work
+
+# Optional: Cost and performance tuning
+CORTEX_TRACK_COSTS=true
+CORTEX_COST_ALERT_THRESHOLD=0.50
+CORTEX_DEBUG=false
+```
+
+3. **Run NeoMXM Development Interface:**
+
+```sh
+./sketch
+```
+
+The interface will:
+- Load your configuration from `.env`
+- Connect to NeoMXM's Cortex expert system
+- Route all requests through intelligent model selection
+- Track costs and performance
+- Open your browser to the web UI
+
+---
+
+**Note**: The original Sketch project that this was based on can be found at [github.com/boldsoftware/sketch](https://github.com/boldsoftware/sketch).  
+NeoMXM is now a completely separate, independent project.
+
+
 
 ## 🔧 Requirements
 
-Currently, Sketch runs on MacOS and Linux. It uses Docker for containers.
+NeoMXM development interface runs on MacOS and Linux. It uses Docker for containers.
 
 | Platform | Installation                                                               |
 | -------- | -------------------------------------------------------------------------- |
@@ -72,28 +134,23 @@ Currently, Sketch runs on MacOS and Linux. It uses Docker for containers.
 | Linux    | `apt install docker.io` (or equivalent for your distro)                    |
 | WSL2     | Install Docker Desktop for Windows (docker entirely inside WSL2 is tricky) |
 
-The [sketch.dev](https://sketch.dev) service is used to provide access
-to an LLM service and give you a way to access the web UI from anywhere.
+**Note**: NeoMXM does not use sketch.dev or any external services. All configuration is local via `.env` file.
 
 ## 🤝 Community & Feedback
 
-- **Discord**: Join our community at [https://discord.gg/6w9qNRUDzS](https://discord.gg/6w9qNRUDzS)
-- **GitHub Issues**: Submit feedback at [https://github.com/boldsoftware/sketch/issues](https://github.com/boldsoftware/sketch/issues)
+This is the development interface for NeoMXM. For the original Sketch project, see [github.com/boldsoftware/sketch](https://github.com/boldsoftware/sketch).
 
 ## 📖 User Guide
 
 ### Getting Started
 
-Start Sketch by running `sketch` in a Git repository. It will open your browser to the Sketch chat interface, but you can also use the CLI interface. Use `-open=false` if you want to use just the CLI interface.
+Start NeoMXM by running `./sketch` in a Git repository. It will open your browser to the chat interface, or you can use the CLI interface. Use `-open=false` for CLI-only mode.
 
-Ask Sketch about your codebase or ask it to implement a feature. It may take a little while for Sketch to do its work, so hit the bell (🔔) icon to enable browser notifications. We won't spam you or anything; it will notify you
-when the Sketch agent's turn is done, and there's something to look at.
+Ask NeoMXM about your codebase or to implement a feature. The Cortex system will intelligently route your request to the most appropriate AI model.
 
-### How Sketch Works
+### How NeoMXM Works
 
-<!-- TODO: innie/outtie picture -->
-
-When you start Sketch, it:
+When you start NeoMXM, it:
 
 1. Creates a Dockerfile
 2. Builds it
