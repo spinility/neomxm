@@ -1,0 +1,33 @@
+New package with tests should not cause nil pointer panic
+
+-- go.mod --
+module sketch.dev
+
+go 1.21
+
+-- .commit --
+Initial commit with no packages
+
+-- newpkg/main.go --
+package newpkg
+
+func Hello() string {
+	return "hello"
+}
+
+-- newpkg/main_test.go --
+package newpkg
+
+import "testing"
+
+func TestHello(t *testing.T) {
+	if got := Hello(); got != "hello" {
+		t.Errorf("Hello() = %q, want %q", got, "hello")
+	}
+}
+
+-- .commit --
+Add new package with tests
+
+-- .run_test --
+OK
