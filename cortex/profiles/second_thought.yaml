@@ -1,9 +1,9 @@
 # SecondThought Expert Profile
-# Model: deepseek-reasoner
+# Model: deepseek-chat
 # Role: Complex task decomposition and orchestration
 
 name: SecondThought
-model: deepseek-reasoner
+model: deepseek-chat
 tier: 2
 elite_complexity_threshold: 0.85
 
