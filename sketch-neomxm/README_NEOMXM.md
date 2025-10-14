@@ -64,7 +64,7 @@ make
 
 # Then run (from sketch-neomxm dir)
 export CORTEX_URL=http://localhost:8181
-./sketch
+./sketch-neomxm
 
 # OR use wrapper from /app root
 cd /app
@@ -136,7 +136,7 @@ Remove or comment out `CORTEX_URL` from your `.env` file, or unset it:
 
 ```bash
 unset CORTEX_URL
-./sketch
+./sketch-neomxm
 ```
 
 ### Environment Variable Priority
@@ -186,7 +186,7 @@ Terminal 3 - Run sketch-neomxm:
 ```bash
 cd /app/sketch-neomxm
 export CORTEX_URL=http://localhost:8181
-./sketch
+./sketch-neomxm
 ```
 
 ## Files Modified from Original Sketch

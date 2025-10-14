@@ -72,7 +72,7 @@ curl http://localhost:8181/experts
 ```bash
 export CORTEX_URL=http://localhost:8181
 cd /app/sketch-neomxm
-./sketch -skaband-addr=""
+./sketch-neomxm -skaband-addr=""
 ```
 
 ### Option 2: Fichier .env
@@ -83,11 +83,11 @@ Ajoutez à votre `.env`:
 CORTEX_URL=http://localhost:8181
 ```
 
-Puis lancez sketch:
+Puis lancez sketch-neomxm:
 
 ```bash
 source .env
-./sketch -skaband-addr=""
+./sketch-neomxm -skaband-addr=""
 ```
 
 ## Notes importantes
@@ -130,7 +130,7 @@ go run cortex/cmd/cortex-server/main.go -addr :8181
 ```bash
 cd /app/sketch-neomxm
 export CORTEX_URL=http://localhost:8181
-./sketch -skaband-addr=""
+./sketch-neomxm -skaband-addr=""
 ```
 
 Sketch-NeoMXM va maintenant router toutes ses requêtes LLM via Cortex!
