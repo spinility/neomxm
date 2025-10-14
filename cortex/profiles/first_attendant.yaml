@@ -1,9 +1,9 @@
 # FirstAttendant Expert Profile
-# Model: gpt-5-nano
+# Model: gpt-4o-mini
 # Role: Fast triage and simple task execution
 
 name: FirstAttendant
-model: gpt-5-nano
+model: gpt-4o-mini
 tier: 1
 confidence_threshold: 0.75
 
