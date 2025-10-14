@@ -486,7 +486,7 @@ func (s *Service) Do(ctx context.Context, ir *llm.Request) (*llm.Response, error
 
 		req.Header.Set("Content-Type", "application/json")
 		req.Header.Set("X-API-Key", s.APIKey)
-		req.Header.Set("Anthropic-Version", "2023-06-01")
+		req.Header.Set("Anthropic-Version", "2025-01-01")
 
 		var features []string
 		if request.TokenEfficientToolUse {
