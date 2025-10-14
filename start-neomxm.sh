@@ -1,17 +1,6 @@
 #!/bin/bash
 set -e
 
-# Load SSH key if available
-if [ -f "$HOME/.ssh/id_ed25519" ]; then
-    echo -e "${BLUE}🔐 Loading SSH key...${NC}"
-    eval "$(ssh-agent -s)" >/dev/null 2>&1
-    ssh-add "$HOME/.ssh/id_ed25519" >/dev/null 2>&1 || {
-        echo -e "${YELLOW}⚠️  Could not load SSH key (maybe passphrase required)${NC}"
-    }
-else
-    echo -e "${YELLOW}⚠️  No SSH key found at ~/.ssh/id_ed25519${NC}"
-fi
-
 # Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -139,10 +128,6 @@ if [ ! -f "sketch-neomxm/sketch" ] || [ "$REBUILD" = true ]; then
     fi
     cd sketch-neomxm
     make
-    if [ $? -ne 0 ]; then
-        echo -e "${RED}❌ Error: Failed to build sketch-neomxm${NC}"
-        exit 1
-    fi
     cd ..
     echo -e "${GREEN}✓ sketch-neomxm built${NC}"
 fi
@@ -204,7 +189,6 @@ echo -e "  ${GREEN}✓ sketch-neomxm:${NC} Starting..."
 echo ""
 echo -e "${YELLOW}💡 Tips:${NC}"
 echo -e "   • All AI requests will route through Cortex"
-echo -e "   • Cortex server accessible at host.docker.internal:8181 from container"
 echo -e "   • Check cortex-server.log for routing logs"
 echo -e "   • Press Ctrl+C to shutdown everything"
 echo -e "   • Run with --rebuild to rebuild binaries"
@@ -213,9 +197,5 @@ echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━
 echo ""
 
 cd sketch-neomxm
-# Set CORTEX_URL - will be automatically mapped to host.docker.internal in container
-# On Linux, we also try to get the docker0 interface IP as fallback
-if [ -z "$CORTEX_URL" ]; then
-    export CORTEX_URL=http://localhost:8181
-fi
-exec ./sketch-neomxm -skaband-addr="" "$@"
+export CORTEX_URL=http://localhost:8181
+exec ./sketch -skaband-addr="" "$@"
