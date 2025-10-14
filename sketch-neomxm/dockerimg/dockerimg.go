@@ -550,6 +550,15 @@ func createDockerContainer(ctx context.Context, cntrName, hostPort, relPath, img
 	for _, envVar := range getEnvForwardingFromGitConfig(ctx) {
 		cmdArgs = append(cmdArgs, "-e", envVar)
 	}
+
+	// Forward CORTEX_URL if set, mapping localhost to host.docker.internal
+	if cortexURL := os.Getenv("CORTEX_URL"); cortexURL != "" {
+		// Replace localhost with host.docker.internal so container can reach host
+		cortexURL = strings.Replace(cortexURL, "localhost", "host.docker.internal", 1)
+		cortexURL = strings.Replace(cortexURL, "127.0.0.1", "host.docker.internal", 1)
+		cmdArgs = append(cmdArgs, "-e", "CORTEX_URL="+cortexURL)
+	}
+
 	if config.ModelURL != "" {
 		cmdArgs = append(cmdArgs, "-e", "SKETCH_MODEL_URL="+config.ModelURL)
 	}

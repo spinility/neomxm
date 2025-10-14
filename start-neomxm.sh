@@ -150,6 +150,7 @@ echo -e "  ${GREEN}✓ sketch-neomxm:${NC} Starting..."
 echo ""
 echo -e "${YELLOW}💡 Tips:${NC}"
 echo -e "   • All AI requests will route through Cortex"
+echo -e "   • Cortex server accessible at host.docker.internal:8181 from container"
 echo -e "   • Check cortex-server.log for routing logs"
 echo -e "   • Press Ctrl+C to shutdown everything"
 echo ""
@@ -157,5 +158,6 @@ echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━
 echo ""
 
 cd sketch-neomxm
+# Set CORTEX_URL - will be automatically mapped to host.docker.internal in container
 export CORTEX_URL=http://localhost:8181
 exec ./sketch -skaband-addr="" "$@"
