@@ -19,6 +19,29 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
+# Show help
+if [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
+    echo "NeoMXM Startup Script"
+    echo ""
+    echo "Usage: ./start-neomxm.sh [OPTIONS]"
+    echo ""
+    echo "Options:"
+    echo "  --rebuild, -r    Rebuild both cortex-server and sketch-neomxm"
+    echo "  --help, -h       Show this help message"
+    echo ""
+    echo "This script:"
+    echo "  1. Loads configuration from .env"
+    echo "  2. Builds cortex-server and sketch-neomxm if needed"
+    echo "  3. Starts Cortex server on port 8181"
+    echo "  4. Starts sketch-neomxm connected to Cortex"
+    echo ""
+    echo "Requirements:"
+    echo "  - .env file with at least one API key configured"
+    echo "  - Run from /app directory"
+    echo ""
+    exit 0
+fi
+
 echo -e "${BLUE}╔════════════════════════════════════════╗${NC}"
 echo -e "${BLUE}║     NeoMXM Startup Script              ║${NC}"
 echo -e "${BLUE}╔════════════════════════════════════════╗${NC}"
@@ -89,19 +112,31 @@ fi
 
 echo -e "${GREEN}✓ Configuration loaded${NC}"
 
-# Check if binaries exist and build if needed
-if [ ! -f "cortex-server" ]; then
-    echo -e "${YELLOW}⚠️  cortex-server not built. Building now...${NC}"
-    go build -o cortex-server ./cortex/cmd/cortex-server/
-    if [ $? -ne 0 ]; then
-        echo -e "${RED}❌ Error: Failed to build cortex-server${NC}"
-        exit 1
+# Check if rebuild flag is set
+REBUILD=false
+if [ "$1" = "--rebuild" ] || [ "$1" = "-r" ]; then
+    REBUILD=true
+    shift  # Remove flag from arguments
+fi
+
+# Build cortex-server if needed
+if [ ! -f "cortex-server" ] || [ "$REBUILD" = true ]; then
+    if [ "$REBUILD" = true ]; then
+        echo -e "${YELLOW}🔨 Rebuilding cortex-server...${NC}"
+    else
+        echo -e "${YELLOW}⚠️  cortex-server not built. Building now...${NC}"
     fi
+    go build -o cortex-server ./cortex/cmd/cortex-server/
     echo -e "${GREEN}✓ cortex-server built${NC}"
 fi
 
-if [ ! -f "sketch-neomxm/sketch-neomxm" ]; then
-    echo -e "${YELLOW}⚠️  sketch-neomxm not built. Building now...${NC}"
+# Build sketch-neomxm if needed
+if [ ! -f "sketch-neomxm/sketch" ] || [ "$REBUILD" = true ]; then
+    if [ "$REBUILD" = true ]; then
+        echo -e "${YELLOW}🔨 Rebuilding sketch-neomxm...${NC}"
+    else
+        echo -e "${YELLOW}⚠️  sketch-neomxm not built. Building now...${NC}"
+    fi
     cd sketch-neomxm
     make
     if [ $? -ne 0 ]; then
@@ -172,6 +207,7 @@ echo -e "   • All AI requests will route through Cortex"
 echo -e "   • Cortex server accessible at host.docker.internal:8181 from container"
 echo -e "   • Check cortex-server.log for routing logs"
 echo -e "   • Press Ctrl+C to shutdown everything"
+echo -e "   • Run with --rebuild to rebuild binaries"
 echo ""
 echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 echo ""
