@@ -1,6 +1,17 @@
 #!/bin/bash
 set -e
 
+# Load SSH key if available
+if [ -f "$HOME/.ssh/id_ed25519" ]; then
+    echo -e "${BLUE}🔐 Loading SSH key...${NC}"
+    eval "$(ssh-agent -s)" >/dev/null 2>&1
+    ssh-add "$HOME/.ssh/id_ed25519" >/dev/null 2>&1 || {
+        echo -e "${YELLOW}⚠️  Could not load SSH key (maybe passphrase required)${NC}"
+    }
+else
+    echo -e "${YELLOW}⚠️  No SSH key found at ~/.ssh/id_ed25519${NC}"
+fi
+
 # Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
