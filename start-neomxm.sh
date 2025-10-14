@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e
+set -e -o pipefail
 
 # Colors for output
 RED='\033[0;31m'
@@ -177,7 +177,11 @@ done
 # Show which experts are available
 echo ""
 echo -e "${BLUE}🧠 Available Experts:${NC}"
-curl -s http://localhost:8181/experts | jq -r '.experts[] | "   - \(.name) (\(.model)) - Tier \(.tier)"' 2>/dev/null || echo "   (Could not fetch experts list)"
+if command -v jq >/dev/null 2>&1; then
+    curl -s http://localhost:8181/experts 2>/dev/null | jq -r '.experts[] | "   - \(.name) (\(.model)) - Tier \(.tier)"' 2>/dev/null || echo "   (Could not fetch experts list)"
+else
+    echo "   (jq not installed, skipping expert list)"
+fi
 
 # Start sketch-neomxm in foreground
 echo ""
@@ -196,6 +200,18 @@ echo ""
 echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 echo ""
 
-cd sketch-neomxm
+# Change to the sketch-neomxm directory and launch
+cd "${PWD}/sketch-neomxm" || {
+    echo -e "${RED}❌ Error: Cannot change to sketch-neomxm directory${NC}"
+    exit 1
+}
+
+# Verify the binary exists
+if [ ! -x "./sketch-neomxm" ]; then
+    echo -e "${RED}❌ Error: sketch-neomxm binary not found or not executable${NC}"
+    echo "   Path: $(pwd)/sketch-neomxm"
+    exit 1
+fi
+
 export CORTEX_URL=http://localhost:8181
-exec ./sketch-neomxm -skaband-addr="" "$@"
+exec ./sketch-neomxm -skaband-addr= "$@"
