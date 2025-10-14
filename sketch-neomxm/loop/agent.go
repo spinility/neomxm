@@ -214,9 +214,9 @@ type AgentMessage struct {
 	Commits []*GitCommit `json:"commits,omitempty"`
 
 	// Cortex metadata (when routing through expert system)
-	ExpertUsed  string  `json:"expert_used,omitempty"`
-	Confidence  float64 `json:"confidence,omitempty"`
-	Model       string  `json:"model,omitempty"`
+	ExpertUsed string  `json:"expert_used,omitempty"`
+	Confidence float64 `json:"confidence,omitempty"`
+	Model      string  `json:"model,omitempty"`
 
 	Timestamp            time.Time  `json:"timestamp"`
 	ConversationID       string     `json:"conversation_id"`
@@ -1005,12 +1005,12 @@ func (a *Agent) OnResponse(ctx context.Context, convo *conversation.Convo, id st
 		}
 	}
 	m := AgentMessage{
-		Type:        AgentMessageType,
-		Content:     collectTextContent(resp),
-		EndOfTurn:   endOfTurn,
-		Usage:       &resp.Usage,
-		StartTime:   resp.StartTime,
-		EndTime:     resp.EndTime,
+		Type:      AgentMessageType,
+		Content:   collectTextContent(resp),
+		EndOfTurn: endOfTurn,
+		Usage:     &resp.Usage,
+		StartTime: resp.StartTime,
+		EndTime:   resp.EndTime,
 		// Cortex metadata
 		ExpertUsed: resp.ExpertUsed,
 		Confidence: resp.Confidence,

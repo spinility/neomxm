@@ -227,11 +227,11 @@ type Response struct {
 	StartTime    *time.Time
 	EndTime      *time.Time
 	// Cortex metadata (populated when routing through expert system)
-	ExpertUsed   string  `json:"expert_used,omitempty"`
-	Confidence   float64 `json:"confidence,omitempty"`
-	Escalated    bool    `json:"escalated,omitempty"`
-	EscalatedTo  string  `json:"escalated_to,omitempty"`
-	Reasoning    string  `json:"reasoning,omitempty"`
+	ExpertUsed  string  `json:"expert_used,omitempty"`
+	Confidence  float64 `json:"confidence,omitempty"`
+	Escalated   bool    `json:"escalated,omitempty"`
+	EscalatedTo string  `json:"escalated_to,omitempty"`
+	Reasoning   string  `json:"reasoning,omitempty"`
 }
 
 func (m *Response) ToMessage() Message {
