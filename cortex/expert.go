@@ -85,6 +85,16 @@ func (e *Expert) Evaluate(ctx context.Context, llmService llm.Service, request *
 
 // evaluateFirstAttendant determines if FirstAttendant should handle the request
 func (e *Expert) evaluateFirstAttendant(request *llm.Request) *ExpertDecision {
+	// If tools are available in the request, escalate immediately to Elite
+	// FirstAttendant (gpt-5-nano) doesn't support tool execution
+	if len(request.Tools) > 0 {
+		return &ExpertDecision{
+			Confidence: 0.0,
+			EscalateTo: "Elite",
+			Reasoning:  "Tools required - escalating to Elite (Claude) for execution",
+		}
+	}
+
 	// Extract user message content
 	userContent := extractUserContent(request)
 	if userContent == "" {
