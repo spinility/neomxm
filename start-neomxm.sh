@@ -26,7 +26,7 @@ if [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
     echo ""
     echo "Requirements:"
     echo "  - .env file with at least one API key configured"
-    echo "  - Run from /app directory"
+    echo "  - Run from the project root directory (where cortex/ and sketch-neomxm/ are)"
     echo ""
     exit 0
 fi
@@ -38,8 +38,9 @@ echo ""
 
 # Check if we're in the right directory
 if [ ! -d "cortex" ] || [ ! -d "sketch-neomxm" ]; then
-    echo -e "${RED}❌ Error: Must be run from /app directory${NC}"
+    echo -e "${RED}❌ Error: Must be run from the project root directory${NC}"
     echo "   Current directory: $(pwd)"
+    echo "   Required directories: cortex/, sketch-neomxm/"
     exit 1
 fi
 
@@ -57,8 +58,8 @@ DEEPSEEK_API_KEY=your-key-here
 
 # Cortex Configuration
 CORTEX_ENABLED=true
-CORTEX_PROFILES_DIR=/app/cortex/profiles
-CORTEX_LOGS_DIR=/app/cortex/logs
+CORTEX_PROFILES_DIR=cortex/profiles
+CORTEX_LOGS_DIR=cortex/logs
 
 # Model Selection (optional overrides)
 CORTEX_MODEL_FIRSTATTENDANT=gpt-4o-mini
@@ -203,9 +204,14 @@ if [ ! -x "./cortex-server" ]; then
     exit 1
 fi
 
+# Export cortex configuration if not already set
+export CORTEX_PROFILES_DIR="${CORTEX_PROFILES_DIR:-cortex/profiles}"
+export CORTEX_LOGS_DIR="${CORTEX_LOGS_DIR:-cortex/logs}"
+
 # Start Cortex Server in background
 echo -e "${BLUE}🚀 Starting Cortex Server on port 8181...${NC}"
 echo -e "${BLUE}   Working directory: $(pwd)${NC}"
+echo -e "${BLUE}   Profiles directory: $CORTEX_PROFILES_DIR${NC}"
 echo -e "${BLUE}   Command: ./cortex-server${NC}"
 ./cortex-server > cortex-server.log 2>&1 &
 CORTEX_PID=$!
