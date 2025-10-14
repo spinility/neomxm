@@ -300,3 +300,96 @@ func TestCollectGoModulesNoModFiles(t *testing.T) {
 		t.Fatalf("Expected 0 modules, got %d", len(modules))
 	}
 }
+
+func TestGetEnvFromFile(t *testing.T) {
+	testCases := []struct {
+		name     string
+		content  string
+		expected map[string]string
+	}{
+		{
+			name: "simple key-value pairs",
+			content: `ANTHROPIC_API_KEY=sk-ant-test123
+CORTEX_URL=http://localhost:8181`,
+			expected: map[string]string{
+				"ANTHROPIC_API_KEY": "sk-ant-test123",
+				"CORTEX_URL":        "http://localhost:8181",
+			},
+		},
+		{
+			name: "quoted values",
+			content: `OPENAI_API_KEY="sk-test-with-double-quotes"
+DEEPSEEK_API_KEY='sk-test-with-single-quotes'`,
+			expected: map[string]string{
+				"OPENAI_API_KEY":   "sk-test-with-double-quotes",
+				"DEEPSEEK_API_KEY": "sk-test-with-single-quotes",
+			},
+		},
+		{
+			name:    "comments and empty lines",
+			content: "# This is a comment\nANTHROPIC_API_KEY=sk-ant-test\n\n# Another comment\nCORTEX_URL=http://localhost:8181\n",
+			expected: map[string]string{
+				"ANTHROPIC_API_KEY": "sk-ant-test",
+				"CORTEX_URL":        "http://localhost:8181",
+			},
+		},
+		{
+			name:    "empty values",
+			content: "EMPTY_VAR=\nANOTHER_VAR=value",
+			expected: map[string]string{
+				"EMPTY_VAR":   "",
+				"ANOTHER_VAR": "value",
+			},
+		},
+		{
+			name:    "whitespace handling",
+			content: "  TRIMMED_KEY  =  trimmed_value  \n  QUOTED_KEY  =  \"  quoted_value  \"  ",
+			expected: map[string]string{
+				"TRIMMED_KEY": "trimmed_value",
+				"QUOTED_KEY":  "  quoted_value  ",
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			// Create a temporary directory
+			tempDir := t.TempDir()
+			envFile := filepath.Join(tempDir, ".env")
+
+			// Write test content to .env file
+			err := os.WriteFile(envFile, []byte(tc.content), 0644)
+			if err != nil {
+				t.Fatalf("Failed to write .env file: %v", err)
+			}
+
+			// Parse the .env file
+			ctx := context.Background()
+			result := getEnvFromFile(ctx, tempDir)
+
+			// Compare results
+			if len(result) != len(tc.expected) {
+				t.Errorf("Expected %d variables, got %d", len(tc.expected), len(result))
+			}
+
+			for key, expectedValue := range tc.expected {
+				if actualValue, ok := result[key]; !ok {
+					t.Errorf("Expected key %q not found in result", key)
+				} else if actualValue != expectedValue {
+					t.Errorf("For key %q: expected %q, got %q", key, expectedValue, actualValue)
+				}
+			}
+		})
+	}
+}
+
+func TestGetEnvFromFileNotExists(t *testing.T) {
+	// Test when .env file doesn't exist
+	tempDir := t.TempDir()
+	ctx := context.Background()
+	result := getEnvFromFile(ctx, tempDir)
+
+	if len(result) != 0 {
+		t.Errorf("Expected empty map when .env doesn't exist, got %d entries", len(result))
+	}
+}

@@ -76,6 +76,25 @@ That's it! All AI requests will now route through the Cortex.
 
 ## Configuration
 
+### Using a .env File (Recommended)
+
+The easiest way to configure sketch-neomxm is to create a `.env` file in your git repository root:
+
+```bash
+# .env file example
+ANTHROPIC_API_KEY=sk-ant-your-key-here
+OPENAI_API_KEY=sk-your-openai-key
+DEEPSEEK_API_KEY=sk-your-deepseek-key
+CORTEX_URL=http://localhost:8181
+CORTEX_ENABLED=true
+```
+
+When you run sketch-neomxm, it will **automatically** read this `.env` file and forward the variables to the Docker container. No need to export them manually!
+
+**Important:** The `.env` file should be in your git root directory (where `.git/` is located).
+
+**Note:** You should add `.env` to your `.gitignore` to avoid committing API keys.
+
 ### Environment Variables
 
 **Required:**
@@ -113,12 +132,21 @@ export CORTEX_MODEL_ELITE=o1-preview
 
 ### How to disable Cortex routing
 
-Unset CORTEX_URL to use standard Sketch behavior (direct Claude API):
+Remove or comment out `CORTEX_URL` from your `.env` file, or unset it:
 
 ```bash
 unset CORTEX_URL
 ./sketch
 ```
+
+### Environment Variable Priority
+
+Environment variables are loaded in this order (later sources override earlier ones):
+1. `.env` file in git root
+2. Current shell environment variables
+3. Command-line flags
+
+This means if you have `CORTEX_URL` in your `.env` file but also `export CORTEX_URL=http://other:8181` in your shell, the shell value will be used.
 
 ## Development
 

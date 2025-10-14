@@ -28,7 +28,7 @@ Sketch-NeoMXM peut router toutes ses requêtes LLM à travers un serveur Cortex 
 
 ### 1. Configurer les variables d'environnement
 
-Créez un fichier `.env` avec vos clés API:
+Créez un fichier `.env` dans votre répertoire git root avec vos clés API:
 
 ```bash
 # API Keys pour les différents providers
@@ -40,7 +40,10 @@ DEEPSEEK_API_KEY=sk-xxx
 CORTEX_ENABLED=true
 CORTEX_PROFILES_DIR=cortex/profiles
 CORTEX_LOGS_DIR=cortex/logs
+CORTEX_URL=http://localhost:8181
 ```
+
+**Note importante:** sketch-neomxm lit automatiquement le fichier `.env` de votre répertoire git root et transmet les variables au conteneur Docker. Pas besoin de faire `source .env` manuellement!
 
 ### 2. Démarrer le serveur
 

@@ -77,10 +77,19 @@ NB: In this section, all git commands have been modified to be accurate for this
 - This functionality is helpful when working on web pages to see what in-progress changes look like.
 
 ## Secrets and Credentials
-- Users can explicitly forward environment variables into the container using the `sketch.envfwd` configuration in their Git repository:
+- Sketch automatically reads a `.env` file from your git repository root and forwards important environment variables (API keys, configuration) to the container.
+- Create a `.env` file in your git root with your API keys and configuration:
+    ```bash
+    ANTHROPIC_API_KEY=sk-ant-your-key
+    CORTEX_URL=http://localhost:8181
+    OPENAI_API_KEY=sk-your-key
+    ```
+- **Important:** Add `.env` to your `.gitignore` to avoid committing API keys to version control.
+- Users can also explicitly forward additional environment variables using the `sketch.envfwd` configuration:
     ```bash
     git config --local --add sketch.envfwd ENV_VAR_TO_MAKE_AVAILABLE_INSIDE_CONTAINER
     ```
+- Environment variable priority: `.env` file < shell environment < command-line flags
 - Avoid sharing highly sensitive credentials.
 
 ## Web dev in Sketch

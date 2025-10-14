@@ -272,7 +272,7 @@ func LaunchContainer(ctx context.Context, config ContainerConfig) error {
 	config.Commit = commit
 
 	// Create the sketch container, copy over linux sketch
-	if err := createDockerContainer(ctx, cntrName, hostPort, relPath, imgName, config); err != nil {
+	if err := createDockerContainer(ctx, cntrName, hostPort, relPath, imgName, gitRoot, config); err != nil {
 		return fmt.Errorf("failed to create docker container: %w", err)
 	}
 	if err := copyEmbeddedLinuxBinaryToContainer(ctx, cntrName); err != nil {
@@ -535,7 +535,7 @@ func newGitServer(gitRoot string, configureUpstreamPassthrough bool, upstream st
 	return ret, nil
 }
 
-func createDockerContainer(ctx context.Context, cntrName, hostPort, relPath, imgName string, config ContainerConfig) error {
+func createDockerContainer(ctx context.Context, cntrName, hostPort, relPath, imgName, gitRoot string, config ContainerConfig) error {
 	cmdArgs := []string{
 		"create",
 		"-i",
@@ -551,8 +551,43 @@ func createDockerContainer(ctx context.Context, cntrName, hostPort, relPath, img
 		cmdArgs = append(cmdArgs, "-e", envVar)
 	}
 
-	// Forward CORTEX_URL if set, mapping localhost to host IP
-	if cortexURL := os.Getenv("CORTEX_URL"); cortexURL != "" {
+	// Load environment variables from .env file in git root
+	envFromFile := getEnvFromFile(ctx, gitRoot)
+
+	// List of important environment variables to forward from .env file
+	importantEnvVars := []string{
+		"ANTHROPIC_API_KEY",
+		"OPENAI_API_KEY",
+		"DEEPSEEK_API_KEY",
+		"GEMINI_API_KEY",
+		"CORTEX_URL",
+		"CORTEX_ENABLED",
+		"CORTEX_PROFILES_DIR",
+		"CORTEX_LOGS_DIR",
+		"CORTEX_DEBUG",
+	}
+
+	// Forward important environment variables from .env file if not already set in environment
+	for _, envKey := range importantEnvVars {
+		if value, ok := envFromFile[envKey]; ok && value != "" {
+			// Only use .env value if not already set in current environment
+			if os.Getenv(envKey) == "" {
+				if envKey == "CORTEX_URL" {
+					// Special handling for CORTEX_URL (mapped below)
+					continue
+				}
+				cmdArgs = append(cmdArgs, "-e", envKey+"="+value)
+				slog.DebugContext(ctx, "forwarding env var from .env file", "key", envKey)
+			}
+		}
+	}
+
+	// Forward CORTEX_URL if set (either from environment or .env file), mapping localhost to host IP
+	cortexURL := os.Getenv("CORTEX_URL")
+	if cortexURL == "" {
+		cortexURL = envFromFile["CORTEX_URL"]
+	}
+	if cortexURL != "" {
 		// On Linux/WSL, use host.docker.internal with --add-host below
 		// Just replace localhost/127.0.0.1 with host.docker.internal
 		cortexURL = strings.Replace(cortexURL, "localhost", "host.docker.internal", 1)
@@ -1113,6 +1148,44 @@ func getEnvForwardingFromGitConfig(ctx context.Context) []string {
 		}
 		envVars = append(envVars, envVar+"="+os.Getenv(envVar))
 	}
+	return envVars
+}
+
+// getEnvFromFile reads environment variables from a .env file in the git root directory.
+// It looks for common LLM and Cortex-related environment variables.
+func getEnvFromFile(ctx context.Context, gitRoot string) map[string]string {
+	envFile := filepath.Join(gitRoot, ".env")
+	envVars := make(map[string]string)
+
+	// Check if .env file exists
+	if _, err := os.Stat(envFile); os.IsNotExist(err) {
+		return envVars
+	}
+
+	content, err := os.ReadFile(envFile)
+	if err != nil {
+		slog.DebugContext(ctx, "failed to read .env file", "path", envFile, "err", err)
+		return envVars
+	}
+
+	// Parse .env file
+	for _, line := range strings.Split(string(content), "\n") {
+		line = strings.TrimSpace(line)
+		// Skip empty lines and comments
+		if line == "" || strings.HasPrefix(line, "#") {
+			continue
+		}
+		// Parse KEY=VALUE format
+		if parts := strings.SplitN(line, "=", 2); len(parts) == 2 {
+			key := strings.TrimSpace(parts[0])
+			value := strings.TrimSpace(parts[1])
+			// Remove quotes if present
+			value = strings.Trim(value, `"'`)
+			envVars[key] = value
+		}
+	}
+
+	slog.DebugContext(ctx, "loaded environment variables from .env", "path", envFile, "count", len(envVars))
 	return envVars
 }
 
