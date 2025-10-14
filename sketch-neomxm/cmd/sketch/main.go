@@ -29,6 +29,7 @@ import (
 	"sketch.dev/llm"
 	"sketch.dev/llm/ant"
 	"sketch.dev/llm/conversation"
+	"sketch.dev/llm/cortex"
 	"sketch.dev/llm/gem"
 	"sketch.dev/llm/oai"
 	"sketch.dev/loop"
@@ -946,6 +947,11 @@ func defaultGitEmail() string {
 // Otherwise, it tries to use the OpenAI service with the specified model.
 // Returns an error if the model name is not recognized or if required configuration is missing.
 func selectLLMService(client *http.Client, flags CLIFlags, spec modelSpec) (llm.Service, error) {
+	// Check if CORTEX_URL is set - if so, route through NeoMXM Cortex
+	if cortexURL := os.Getenv("CORTEX_URL"); cortexURL != "" {
+		return cortex.NewClient(), nil
+	}
+
 	if ant.IsClaudeModel(flags.modelName) {
 		if spec.apiKey == "" {
 			return nil, fmt.Errorf("no anthropic api key provided, set %s", ant.APIKeyEnv)

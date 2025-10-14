@@ -1,0 +1,309 @@
+package cortex
+
+import (
+	"encoding/json"
+	"fmt"
+	"log/slog"
+	"net/http"
+	"time"
+
+	"github.com/spinility/sketch-neomxm/llm"
+)
+
+// Server is the HTTP server for the Cortex system
+type Server struct {
+	cortex *Cortex
+	addr   string
+}
+
+// NewServer creates a new Cortex HTTP server
+func NewServer(cortex *Cortex, addr string) *Server {
+	return &Server{
+		cortex: cortex,
+		addr:   addr,
+	}
+}
+
+// ChatRequest represents an incoming chat request
+type ChatRequest struct {
+	Messages   []Message      `json:"messages"`
+	Tools      []Tool         `json:"tools,omitempty"`
+	System     []SystemMsg    `json:"system,omitempty"`
+	ToolChoice *ToolChoiceReq `json:"tool_choice,omitempty"`
+}
+
+// Message represents a message in the conversation
+type Message struct {
+	Role    string    `json:"role"`
+	Content []Content `json:"content"`
+}
+
+// Content represents message content
+type Content struct {
+	Type string `json:"type"`
+	Text string `json:"text,omitempty"`
+
+	// For tool_use
+	ID    string          `json:"id,omitempty"`
+	Name  string          `json:"name,omitempty"`
+	Input json.RawMessage `json:"input,omitempty"`
+
+	// For tool_result
+	ToolUseID string `json:"tool_use_id,omitempty"`
+	Content   string `json:"content,omitempty"`
+	IsError   bool   `json:"is_error,omitempty"`
+}
+
+// Tool represents a tool definition
+type Tool struct {
+	Name        string          `json:"name"`
+	Description string          `json:"description,omitempty"`
+	InputSchema json.RawMessage `json:"input_schema,omitempty"`
+}
+
+// SystemMsg represents a system message
+type SystemMsg struct {
+	Type string `json:"type"`
+	Text string `json:"text"`
+}
+
+// ToolChoiceReq represents tool choice configuration
+type ToolChoiceReq struct {
+	Type string `json:"type"`
+	Name string `json:"name,omitempty"`
+}
+
+// ChatResponse represents the response from cortex
+type ChatResponse struct {
+	ID         string     `json:"id"`
+	Model      string     `json:"model"`
+	Expert     string     `json:"expert"`
+	Role       string     `json:"role"`
+	Content    []Content  `json:"content"`
+	StopReason string     `json:"stop_reason"`
+	Usage      UsageInfo  `json:"usage"`
+	Metadata   ExpertMeta `json:"metadata,omitempty"`
+}
+
+// UsageInfo represents token usage information
+type UsageInfo struct {
+	InputTokens  int     `json:"input_tokens"`
+	OutputTokens int     `json:"output_tokens"`
+	CostUSD      float64 `json:"cost_usd,omitempty"`
+}
+
+// ExpertMeta contains metadata about expert selection
+type ExpertMeta struct {
+	ExpertUsed  string  `json:"expert_used"`
+	Confidence  float64 `json:"confidence,omitempty"`
+	Escalated   bool    `json:"escalated,omitempty"`
+	EscalatedTo string  `json:"escalated_to,omitempty"`
+	Duration    string  `json:"duration"`
+}
+
+// Start starts the HTTP server
+func (s *Server) Start() error {
+	mux := http.NewServeMux()
+	mux.HandleFunc("/health", s.handleHealth)
+	mux.HandleFunc("/chat", s.handleChat)
+	mux.HandleFunc("/experts", s.handleExperts)
+
+	slog.Info("Starting Cortex HTTP server", "addr", s.addr)
+	return http.ListenAndServe(s.addr, s.loggingMiddleware(mux))
+}
+
+// handleHealth returns server health status
+func (s *Server) handleHealth(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{
+		"status": "healthy",
+		"cortex": "ready",
+	})
+}
+
+// handleExperts returns available experts
+func (s *Server) handleExperts(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	experts := make([]map[string]interface{}, 0)
+	for name, expert := range s.cortex.experts {
+		experts = append(experts, map[string]interface{}{
+			"name":  name,
+			"model": expert.Profile.Model,
+			"tier":  expert.Profile.Tier,
+		})
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"experts": experts,
+		"enabled": s.cortex.config.Enabled,
+	})
+}
+
+// handleChat processes chat requests through the cortex
+func (s *Server) handleChat(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	start := time.Now()
+	ctx := r.Context()
+
+	// Parse request
+	var req ChatRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, fmt.Sprintf("Invalid request: %v", err), http.StatusBadRequest)
+		return
+	}
+
+	// Convert to LLM request
+	llmReq := s.convertToLLMRequest(&req)
+
+	// Process through cortex
+	resp, err := s.cortex.ProcessRequest(ctx, llmReq)
+	if err != nil {
+		slog.ErrorContext(ctx, "Cortex processing failed", "error", err)
+		http.Error(w, fmt.Sprintf("Processing failed: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	// Convert response
+	chatResp := s.convertFromLLMResponse(resp, time.Since(start))
+
+	// Send response
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(chatResp); err != nil {
+		slog.ErrorContext(ctx, "Failed to encode response", "error", err)
+		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+		return
+	}
+}
+
+// convertToLLMRequest converts HTTP request to LLM request
+func (s *Server) convertToLLMRequest(req *ChatRequest) *llm.Request {
+	llmReq := &llm.Request{
+		Messages: make([]llm.Message, len(req.Messages)),
+		System:   make([]llm.SystemContent, len(req.System)),
+		Tools:    make([]*llm.Tool, len(req.Tools)),
+	}
+
+	// Convert messages
+	for i, msg := range req.Messages {
+		// Parse role
+		var role llm.MessageRole
+		switch msg.Role {
+		case "user":
+			role = llm.MessageRoleUser
+		case "assistant":
+			role = llm.MessageRoleAssistant
+		default:
+			role = llm.MessageRoleUser
+		}
+
+		llmReq.Messages[i] = llm.Message{
+			Role:    role,
+			Content: make([]llm.Content, len(msg.Content)),
+		}
+
+		for j, content := range msg.Content {
+			// Parse content type
+			var contentType llm.ContentType
+			switch content.Type {
+			case "text":
+				contentType = llm.ContentTypeText
+			case "tool_use":
+				contentType = llm.ContentTypeToolUse
+			case "tool_result":
+				contentType = llm.ContentTypeToolResult
+			default:
+				contentType = llm.ContentTypeText
+			}
+
+			llmReq.Messages[i].Content[j] = llm.Content{
+				Type:      contentType,
+				Text:      content.Text,
+				ID:        content.ID,
+				ToolName:  content.Name,
+				ToolInput: content.Input,
+			}
+		}
+	}
+
+	// Convert system messages
+	for i, sys := range req.System {
+		llmReq.System[i] = llm.SystemContent{
+			Type: sys.Type,
+			Text: sys.Text,
+		}
+	}
+
+	// Convert tools
+	for i, tool := range req.Tools {
+		llmReq.Tools[i] = &llm.Tool{
+			Name:        tool.Name,
+			Description: tool.Description,
+			InputSchema: tool.InputSchema,
+		}
+	}
+
+	return llmReq
+}
+
+// convertFromLLMResponse converts LLM response to HTTP response
+func (s *Server) convertFromLLMResponse(resp *llm.Response, duration time.Duration) *ChatResponse {
+	chatResp := &ChatResponse{
+		ID:         resp.ID,
+		Model:      resp.Model,
+		Role:       string(resp.Role),
+		Content:    make([]Content, len(resp.Content)),
+		StopReason: string(resp.StopReason),
+		Usage: UsageInfo{
+			InputTokens:  int(resp.Usage.InputTokens),
+			OutputTokens: int(resp.Usage.OutputTokens),
+			CostUSD:      resp.Usage.CostUSD,
+		},
+		Metadata: ExpertMeta{
+			Duration: duration.String(),
+		},
+	}
+
+	// Convert content
+	for i, content := range resp.Content {
+		chatResp.Content[i] = Content{
+			Type: string(content.Type),
+			Text: content.Text,
+			ID:   content.ID,
+			Name: content.ToolName,
+		}
+	}
+
+	return chatResp
+}
+
+// loggingMiddleware logs HTTP requests
+func (s *Server) loggingMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		start := time.Now()
+		slog.Info("HTTP request",
+			"method", r.Method,
+			"path", r.URL.Path,
+			"remote", r.RemoteAddr,
+		)
+		next.ServeHTTP(w, r)
+		slog.Info("HTTP response",
+			"method", r.Method,
+			"path", r.URL.Path,
+			"duration", time.Since(start),
+		)
+	})
+}
