@@ -48,6 +48,14 @@ cp .env.example .env
 ./start-neomxm.sh
 ```
 
+**Alternative**: You can also export API keys directly instead of using .env:
+```bash
+export ANTHROPIC_API_KEY="your-key"
+export OPENAI_API_KEY="your-key"
+export DEEPSEEK_API_KEY="your-key"
+./start-neomxm.sh
+```
+
 The script will:
 - Build the binary if it doesn't exist (`make` is automatically run)
 - Start the Cortex server on port 8181
