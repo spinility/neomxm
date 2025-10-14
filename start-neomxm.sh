@@ -80,7 +80,9 @@ fi
 
 # Load environment variables
 echo -e "${BLUE}📋 Loading configuration from .env...${NC}"
+set -a  # Automatically export all variables
 source .env
+set +a  # Stop auto-exporting
 
 # Check if at least one API key is set
 if [ -z "$ANTHROPIC_API_KEY" ] && [ -z "$OPENAI_API_KEY" ] && [ -z "$DEEPSEEK_API_KEY" ]; then
