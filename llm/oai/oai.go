@@ -511,7 +511,7 @@ func (m Model) requiresMaxCompletionTokens() bool {
 
 	// GPT-5 series models also require max_completion_tokens
 	switch m.ModelName {
-	case "gpt-5", "gpt-5-mini":
+	case "gpt-5", "gpt-5-mini", "gpt-5-nano":
 		return true
 	default:
 		return false
