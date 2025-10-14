@@ -120,7 +120,7 @@ if [ ! -f "cortex-server" ] || [ "$REBUILD" = true ]; then
 fi
 
 # Build sketch-neomxm if needed
-if [ ! -f "sketch-neomxm/sketch" ] || [ "$REBUILD" = true ]; then
+if [ ! -f "sketch-neomxm/sketch-neomxm" ] || [ "$REBUILD" = true ]; then
     if [ "$REBUILD" = true ]; then
         echo -e "${YELLOW}🔨 Rebuilding sketch-neomxm...${NC}"
     else
@@ -198,4 +198,4 @@ echo ""
 
 cd sketch-neomxm
 export CORTEX_URL=http://localhost:8181
-exec ./sketch -skaband-addr="" "$@"
+exec ./sketch-neomxm -skaband-addr="" "$@"
