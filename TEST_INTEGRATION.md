@@ -77,13 +77,14 @@ curl -X POST http://localhost:8181/chat \
 
 Terminal 3:
 ```bash
+# Build sketch-neomxm (première fois)
 cd /app/sketch-neomxm
+make
 
-# Pointer vers le cortex
+# Ou utiliser le wrapper depuis /app
+cd /app
 export CORTEX_URL=http://localhost:8181
-
-# Lancer sketch
-./sketch
+./run-sketch-neomxm.sh
 ```
 
 sketch-neomxm va maintenant router TOUTES les requêtes IA vers le cortex!

@@ -53,18 +53,23 @@ INFO Starting Cortex server addr=:8181
 INFO Cortex server ready addr=:8181
 ```
 
-### 2. Run sketch-neomxm
+### 2. Build and Run sketch-neomxm
 
 In another terminal:
 
 ```bash
+# First time: build
 cd /app/sketch-neomxm
+make
 
-# Point to cortex server
+# Then run (from sketch-neomxm dir)
 export CORTEX_URL=http://localhost:8181
-
-# Run sketch
 ./sketch
+
+# OR use wrapper from /app root
+cd /app
+export CORTEX_URL=http://localhost:8181
+./run-sketch-neomxm.sh
 ```
 
 That's it! All AI requests will now route through the Cortex.
