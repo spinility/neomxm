@@ -42,7 +42,7 @@ cd sketch-neomxm
 cp .env.example .env
 # Edit .env with your API keys
 make
-./sketch
+./sketch-neomxm
 ```
 
 See [sketch-neomxm/CONFIGURATION.md](sketch-neomxm/CONFIGURATION.md) for detailed setup.

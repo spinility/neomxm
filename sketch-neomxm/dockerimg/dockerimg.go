@@ -598,11 +598,11 @@ func createDockerContainer(ctx context.Context, cntrName, hostPort, relPath, img
 	}
 	cmdArgs = append(cmdArgs, imgName)
 
-	// Add command: either [sketch] or [subtrace run -- sketch]
+	// Add command: either [sketch-neomxm] or [subtrace run -- sketch-neomxm]
 	if config.SubtraceToken != "" {
-		cmdArgs = append(cmdArgs, "/usr/local/bin/subtrace", "run", "--", "/bin/sketch")
+		cmdArgs = append(cmdArgs, "/usr/local/bin/subtrace", "run", "--", "/bin/sketch-neomxm")
 	} else {
-		cmdArgs = append(cmdArgs, "/bin/sketch")
+		cmdArgs = append(cmdArgs, "/bin/sketch-neomxm")
 	}
 
 	// Add all sketch arguments
@@ -912,7 +912,7 @@ func buildLayeredImage(ctx context.Context, imgName, baseImage, gitRoot string, 
 	}
 
 	line("WORKDIR /app")
-	line(`CMD ["/bin/sketch"]`)
+	line(`CMD ["/bin/sketch-neomxm"]`)
 	dockerfileContent := buf.String()
 
 	// Create a temporary directory for the Dockerfile
@@ -1202,7 +1202,7 @@ func copyEmbeddedLinuxBinaryToContainer(ctx context.Context, containerName strin
 		tw := tar.NewWriter(pw)
 
 		hdr := &tar.Header{
-			Name: "bin/sketch", // final path inside the container
+			Name: "bin/sketch-neomxm", // final path inside the container
 			Mode: 0o700,
 			Size: int64(len(bin)),
 		}

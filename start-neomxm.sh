@@ -85,7 +85,7 @@ if [ ! -f "cortex-server" ]; then
     exit 1
 fi
 
-if [ ! -f "sketch-neomxm/sketch" ]; then
+if [ ! -f "sketch-neomxm/sketch-neomxm" ]; then
     echo -e "${YELLOW}⚠️  sketch-neomxm not built. Building now...${NC}"
     cd sketch-neomxm
     make
@@ -160,4 +160,4 @@ echo ""
 cd sketch-neomxm
 # Set CORTEX_URL - will be automatically mapped to host.docker.internal in container
 export CORTEX_URL=http://localhost:8181
-exec ./sketch -skaband-addr="" "$@"
+exec ./sketch-neomxm -skaband-addr="" "$@"
