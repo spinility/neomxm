@@ -1,9 +1,9 @@
 # SecondThought Expert Profile
-# Model: DeepSeek-V3.2-Exp
+# Model: claude-3-5-haiku-20241022
 # Role: Complex task decomposition and orchestration
 
 name: SecondThought
-model: deepseek-reasoner  # DeepSeek-V3.2-Exp with reasoning
+model: claude-3-5-haiku-20241022  # Fast and cost-effective Claude
 tier: 2
 elite_complexity_threshold: 0.85
 

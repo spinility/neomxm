@@ -1,9 +1,9 @@
 # Elite Expert Profile
-# Model: claude-sonnet-4-5-20250929
+# Model: claude-3-5-sonnet-20241022
 # Role: Ultimate problem-solver for complex challenges
 
 name: Elite
-model: claude-sonnet-4-5-20250929
+model: claude-3-5-sonnet-20241022
 tier: 3
 
 strengths:
