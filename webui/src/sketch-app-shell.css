@@ -1,0 +1,50 @@
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  display: flex;
+}
+
+/* 
+ * Import Monaco editor's Codicon font - this is critical for icons
+ * IMPORTANT: This font-face declaration MUST remain in global CSS.
+ * Chrome does not apply @font-face rules properly when they're inside shadow DOM.
+ * Do not move this to the sketch-monaco-view component despite it being used there.
+ */
+@font-face {
+  font-family: "codicon";
+  font-display: block;
+  src: url("./monaco/min/vs/base/browser/ui/codicons/codicon/codicon.ttf")
+    format("truetype");
+}
+
+/*
+ * SketchTailwindElement components need explicit host-level styling
+ * since they disable shadow DOM and lose :host CSS selector support
+ */
+sketch-diff2-view {
+  display: flex;
+  height: 100%;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0; /* Critical for flex child behavior */
+  overflow: hidden;
+  position: relative; /* Establish positioning context */
+}
+
+/* Print styles for full chat printing */
+@media print {
+  html,
+  body {
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  body {
+    margin: 0;
+    padding: 0;
+  }
+}
