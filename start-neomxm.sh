@@ -84,8 +84,20 @@ if [ -f ".env" ]; then
     set -a  # Automatically export all variables
     source .env
     set +a  # Stop auto-exporting
+    echo -e "${GREEN}✓ Configuration loaded${NC}"
 else
     echo -e "${YELLOW}⚠️  No .env file found, using environment variables${NC}"
+fi
+
+# Debug: Show which API keys are set (masked)
+if [ ! -z "$ANTHROPIC_API_KEY" ]; then
+    echo -e "${GREEN}  ✓ ANTHROPIC_API_KEY is set${NC}"
+fi
+if [ ! -z "$OPENAI_API_KEY" ]; then
+    echo -e "${GREEN}  ✓ OPENAI_API_KEY is set${NC}"
+fi
+if [ ! -z "$DEEPSEEK_API_KEY" ]; then
+    echo -e "${GREEN}  ✓ DEEPSEEK_API_KEY is set${NC}"
 fi
 
 # Check if at least one API key is set
@@ -160,8 +172,14 @@ cleanup() {
 
 trap cleanup SIGINT SIGTERM
 
-# Start Cortex Server in background
+# Kill any existing cortex-server or sketch-neomxm processes
 echo ""
+echo -e "${BLUE}🧹 Cleaning up any existing processes...${NC}"
+pkill -f 'cortex-server' 2>/dev/null || true
+pkill -f 'sketch-neomxm.*-unsafe' 2>/dev/null || true
+sleep 1
+
+# Start Cortex Server in background
 echo -e "${BLUE}🚀 Starting Cortex Server on port 8181...${NC}"
 ./cortex-server > cortex-server.log 2>&1 &
 CORTEX_PID=$!
