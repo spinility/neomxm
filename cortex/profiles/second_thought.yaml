@@ -3,7 +3,7 @@
 # Role: Complex task decomposition and orchestration
 
 name: SecondThought
-model: deepseek-chat  # DeepSeek-V3.2-Exp via their API
+model: deepseek-reasoner  # DeepSeek-V3.2-Exp with reasoning
 tier: 2
 elite_complexity_threshold: 0.85
 

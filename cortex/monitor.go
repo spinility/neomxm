@@ -29,9 +29,9 @@ func DefaultCostEstimate() *CostEstimate {
 				InputCostPerMToken:  0.10, // $0.10 per 1M tokens (estimated)
 				OutputCostPerMToken: 0.30,
 			},
-			"deepseek-chat": {
-				InputCostPerMToken:  0.14, // DeepSeek-V3 pricing
-				OutputCostPerMToken: 0.28,
+			"deepseek-reasoner": {
+				InputCostPerMToken:  0.55, // DeepSeek Reasoner pricing
+				OutputCostPerMToken: 2.19,
 			},
 			"claude-sonnet-4-5-20250929": {
 				InputCostPerMToken:  3.00, // Claude Sonnet pricing
