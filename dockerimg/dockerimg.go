@@ -22,11 +22,11 @@ import (
 	"sync/atomic"
 	"time"
 
-	"golang.org/x/crypto/ssh"
 	"github.com/spinility/sketch-neomxm/browser"
 	"github.com/spinility/sketch-neomxm/embedded"
 	"github.com/spinility/sketch-neomxm/loop/server"
 	"github.com/spinility/sketch-neomxm/skribe"
+	"golang.org/x/crypto/ssh"
 )
 
 // ContainerConfig holds all configuration for launching a container

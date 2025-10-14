@@ -1898,22 +1898,22 @@ func (a *Agent) buildLLMRequest(userMessage llm.Message) *llm.Request {
 	// Extract tools and system prompt from the conversation
 	var tools []*llm.Tool
 	var systemPrompt string
-	
+
 	if convo, ok := a.convo.(*conversation.Convo); ok {
 		tools = convo.Tools
 		systemPrompt = convo.SystemPrompt
 	}
-	
+
 	// Build system content
 	systemContent := []llm.SystemContent{}
 	if systemPrompt != "" {
 		systemContent = append(systemContent, llm.SystemContent{
-			Text: systemPrompt,
-			Type: "text",
+			Text:  systemPrompt,
+			Type:  "text",
 			Cache: true, // Enable caching for system prompt
 		})
 	}
-	
+
 	request := &llm.Request{
 		Messages: []llm.Message{userMessage},
 		Tools:    tools,

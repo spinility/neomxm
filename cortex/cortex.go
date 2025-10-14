@@ -10,9 +10,9 @@ import (
 
 // Cortex is the main orchestrator for the expert system
 type Cortex struct {
-	config    *Config
-	experts   map[string]*Expert
-	tracker   *PerformanceTracker
+	config     *Config
+	experts    map[string]*Expert
+	tracker    *PerformanceTracker
 	llmService llm.Service
 }
 
@@ -220,11 +220,11 @@ func (c *Cortex) GetStatistics() (Statistics, error) {
 // Shutdown performs cleanup when cortex is shutting down
 func (c *Cortex) Shutdown(ctx context.Context) error {
 	slog.InfoContext(ctx, "Cortex shutting down")
-	
+
 	// Save any remaining logs
 	if err := c.tracker.Save(); err != nil {
 		return fmt.Errorf("failed to save logs on shutdown: %w", err)
 	}
-	
+
 	return nil
 }

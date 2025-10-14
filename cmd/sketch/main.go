@@ -21,7 +21,6 @@ import (
 	"syscall"
 	"time"
 
-	"golang.org/x/term"
 	"github.com/spinility/sketch-neomxm/browser"
 	"github.com/spinility/sketch-neomxm/claudetool"
 	"github.com/spinility/sketch-neomxm/dockerimg"
@@ -39,6 +38,7 @@ import (
 	"github.com/spinility/sketch-neomxm/termui"
 	"github.com/spinility/sketch-neomxm/update"
 	"github.com/spinility/sketch-neomxm/webui"
+	"golang.org/x/term"
 )
 
 // Version information set by ldflags at build time

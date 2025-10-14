@@ -26,18 +26,18 @@ func DefaultConfig() *Config {
 
 // ExpertProfile represents an expert's configuration loaded from YAML
 type ExpertProfile struct {
-	Name                    string   `yaml:"name"`
-	Model                   string   `yaml:"model"`
-	Tier                    int      `yaml:"tier,omitempty"`
-	Type                    string   `yaml:"type,omitempty"` // "" for regular, "meta" for meta-experts
-	Category                string   `yaml:"category,omitempty"`
-	ConfidenceThreshold     float64  `yaml:"confidence_threshold,omitempty"`
-	EliteComplexityThreshold float64 `yaml:"elite_complexity_threshold,omitempty"`
-	Strengths               []string `yaml:"strengths"`
-	Weaknesses              []string `yaml:"weaknesses,omitempty"`
-	SystemPrompt            string   `yaml:"system_prompt"`
-	MaxTokens               int      `yaml:"max_tokens"`
-	Temperature             float64  `yaml:"temperature"`
+	Name                     string   `yaml:"name"`
+	Model                    string   `yaml:"model"`
+	Tier                     int      `yaml:"tier,omitempty"`
+	Type                     string   `yaml:"type,omitempty"` // "" for regular, "meta" for meta-experts
+	Category                 string   `yaml:"category,omitempty"`
+	ConfidenceThreshold      float64  `yaml:"confidence_threshold,omitempty"`
+	EliteComplexityThreshold float64  `yaml:"elite_complexity_threshold,omitempty"`
+	Strengths                []string `yaml:"strengths"`
+	Weaknesses               []string `yaml:"weaknesses,omitempty"`
+	SystemPrompt             string   `yaml:"system_prompt"`
+	MaxTokens                int      `yaml:"max_tokens"`
+	Temperature              float64  `yaml:"temperature"`
 }
 
 // LoadExpertProfile loads an expert profile from a YAML file

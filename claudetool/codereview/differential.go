@@ -21,8 +21,8 @@ import (
 	"sync"
 	"time"
 
-	"golang.org/x/tools/go/packages"
 	"github.com/spinility/sketch-neomxm/llm"
+	"golang.org/x/tools/go/packages"
 )
 
 // This file does differential quality analysis of a commit relative to a base commit.

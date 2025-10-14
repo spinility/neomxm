@@ -35,12 +35,12 @@ type TaskRecord struct {
 
 // ExpertDecision represents an expert's decision on how to handle a request
 type ExpertDecision struct {
-	Confidence    float64 `json:"confidence,omitempty"`
-	Complexity    float64 `json:"complexity,omitempty"`
-	EscalateTo    string  `json:"escalate_to,omitempty"`
-	Reasoning     string  `json:"reasoning"`
-	Approach      string  `json:"approach,omitempty"`
-	ContextSummary string `json:"context_summary,omitempty"`
+	Confidence     float64 `json:"confidence,omitempty"`
+	Complexity     float64 `json:"complexity,omitempty"`
+	EscalateTo     string  `json:"escalate_to,omitempty"`
+	Reasoning      string  `json:"reasoning"`
+	Approach       string  `json:"approach,omitempty"`
+	ContextSummary string  `json:"context_summary,omitempty"`
 }
 
 // NewExpert creates a new expert with the given profile
@@ -59,21 +59,21 @@ func NewExpert(profile *ExpertProfile) *Expert {
 func (e *Expert) Evaluate(ctx context.Context, llmService llm.Service, request *llm.Request) (*ExpertDecision, error) {
 	// For now, we'll use a simple heuristic approach
 	// In the future, this could involve an actual LLM call to assess confidence
-	
+
 	slog.InfoContext(ctx, "Expert evaluating request", "expert", e.Profile.Name)
-	
+
 	// For FirstAttendant, check confidence threshold
 	if e.Profile.Name == "FirstAttendant" {
 		decision := e.evaluateFirstAttendant(request)
 		return decision, nil
 	}
-	
+
 	// For SecondThought, check complexity threshold
 	if e.Profile.Name == "SecondThought" {
 		decision := e.evaluateSecondThought(request)
 		return decision, nil
 	}
-	
+
 	// Elite always handles the request
 	return &ExpertDecision{
 		Confidence: 1.0,
@@ -94,10 +94,10 @@ func (e *Expert) evaluateFirstAttendant(request *llm.Request) *ExpertDecision {
 			Reasoning:  "No clear user content to evaluate",
 		}
 	}
-	
+
 	// Simple heuristic: check for complexity indicators
 	complexityScore := assessComplexity(userContent)
-	
+
 	if complexityScore < 0.3 {
 		// Simple task - high confidence
 		return &ExpertDecision{
@@ -126,17 +126,17 @@ func (e *Expert) evaluateFirstAttendant(request *llm.Request) *ExpertDecision {
 func (e *Expert) evaluateSecondThought(request *llm.Request) *ExpertDecision {
 	userContent := extractUserContent(request)
 	complexityScore := assessComplexity(userContent)
-	
+
 	if complexityScore >= 0.85 {
 		// Elite-level complexity
 		return &ExpertDecision{
-			Complexity: complexityScore,
-			EscalateTo: "Elite",
-			Reasoning:  "Task requires elite-level expertise",
+			Complexity:     complexityScore,
+			EscalateTo:     "Elite",
+			Reasoning:      "Task requires elite-level expertise",
 			ContextSummary: fmt.Sprintf("Complex task: %s", truncate(userContent, 100)),
 		}
 	}
-	
+
 	// SecondThought can handle it
 	return &ExpertDecision{
 		Complexity: complexityScore,
@@ -148,16 +148,16 @@ func (e *Expert) evaluateSecondThought(request *llm.Request) *ExpertDecision {
 // Execute asks the expert to execute the request using the LLM service
 func (e *Expert) Execute(ctx context.Context, llmService llm.Service, request *llm.Request) (*llm.Response, *PerformanceLog, error) {
 	start := time.Now()
-	
+
 	slog.InfoContext(ctx, "Expert executing request", "expert", e.Profile.Name, "model", e.Profile.Model)
-	
+
 	// Prepend expert's system prompt to the request
 	enhancedRequest := e.enhanceRequest(request)
-	
+
 	// Execute the request using the LLM service
 	resp, err := llmService.Do(ctx, enhancedRequest)
 	duration := time.Since(start)
-	
+
 	// Create performance log
 	perfLog := &PerformanceLog{
 		Timestamp:    start,
@@ -168,19 +168,19 @@ func (e *Expert) Execute(ctx context.Context, llmService llm.Service, request *l
 		TokensInput:  extractTokenCount(resp, "input"),
 		TokensOutput: extractTokenCount(resp, "output"),
 	}
-	
+
 	if err != nil {
 		perfLog.ErrorMessage = err.Error()
 		return nil, perfLog, fmt.Errorf("expert %s failed to execute: %w", e.Profile.Name, err)
 	}
-	
+
 	return resp, perfLog, nil
 }
 
 // enhanceRequest prepends the expert's system prompt to the request
 func (e *Expert) enhanceRequest(request *llm.Request) *llm.Request {
 	enhanced := *request // Copy the request
-	
+
 	// Prepend expert's system prompt
 	if e.Profile.SystemPrompt != "" {
 		systemContent := llm.SystemContent{
@@ -189,7 +189,7 @@ func (e *Expert) enhanceRequest(request *llm.Request) *llm.Request {
 		}
 		enhanced.System = append([]llm.SystemContent{systemContent}, enhanced.System...)
 	}
-	
+
 	return &enhanced
 }
 
@@ -211,28 +211,28 @@ func extractUserContent(request *llm.Request) string {
 func assessComplexity(content string) float64 {
 	// Simple heuristic-based complexity assessment
 	// In the future, this could use ML or more sophisticated analysis
-	
+
 	contentLower := strings.ToLower(content)
 	score := 0.0
-	
+
 	// Complexity indicators
 	complexKeywords := []string{
 		"architecture", "refactor", "optimize", "security",
 		"algorithm", "performance", "scalability", "distributed",
 		"design pattern", "best practices", "complex",
 	}
-	
+
 	for _, keyword := range complexKeywords {
 		if strings.Contains(contentLower, keyword) {
 			score += 0.15
 		}
 	}
-	
+
 	// Multiple file mentions
 	if strings.Count(contentLower, "file") > 3 || strings.Count(contentLower, ".go") > 3 {
 		score += 0.2
 	}
-	
+
 	// Long content suggests complexity
 	if len(content) > 500 {
 		score += 0.1
@@ -240,12 +240,12 @@ func assessComplexity(content string) float64 {
 	if len(content) > 1000 {
 		score += 0.1
 	}
-	
+
 	// Cap at 1.0
 	if score > 1.0 {
 		score = 1.0
 	}
-	
+
 	return score
 }
 
@@ -278,7 +278,7 @@ func ParseExpertDecision(content string) (*ExpertDecision, error) {
 	} else {
 		start += len("```json")
 	}
-	
+
 	end := strings.Index(content[start:], "```")
 	if end == -1 {
 		end = strings.LastIndex(content, "}")
@@ -289,13 +289,13 @@ func ParseExpertDecision(content string) (*ExpertDecision, error) {
 	} else {
 		end = start + end
 	}
-	
+
 	jsonStr := strings.TrimSpace(content[start:end])
-	
+
 	var decision ExpertDecision
 	if err := json.Unmarshal([]byte(jsonStr), &decision); err != nil {
 		return nil, fmt.Errorf("failed to parse decision JSON: %w", err)
 	}
-	
+
 	return &decision, nil
 }

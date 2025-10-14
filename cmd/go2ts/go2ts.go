@@ -11,11 +11,11 @@ import (
 	"fmt"
 	"os"
 
-	"go.skia.org/infra/go/go2ts"
 	"github.com/spinility/sketch-neomxm/git_tools"
 	"github.com/spinility/sketch-neomxm/llm"
 	"github.com/spinility/sketch-neomxm/loop"
 	"github.com/spinility/sketch-neomxm/loop/server"
+	"go.skia.org/infra/go/go2ts"
 )
 
 func main() {

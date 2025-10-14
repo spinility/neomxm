@@ -19,8 +19,8 @@ import (
 
 	"github.com/dustin/go-humanize"
 	"github.com/fatih/color"
-	"golang.org/x/term"
 	"github.com/spinility/sketch-neomxm/loop"
+	"golang.org/x/term"
 )
 
 var (
