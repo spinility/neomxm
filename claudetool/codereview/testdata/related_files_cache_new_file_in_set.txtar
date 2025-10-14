@@ -1,0 +1,108 @@
+Tests related files caching when some files have been reported but new ones are present
+
+-- a.go --
+package main
+
+func a() {}
+
+-- b.go --
+package main
+
+func b() {}
+
+-- c.go --
+package main
+
+func c() {}
+
+-- d.go --
+package main
+
+func d() {}
+
+-- .commit --
+Create initial commit
+
+-- a.go --
+package main
+
+func a() {
+    // Update 1
+}
+
+-- b.go --
+package main
+
+func b() {
+    // Update 1
+}
+
+-- .commit --
+Update a.go and b.go together
+
+-- a.go --
+package main
+
+func a() {
+    // Update 2
+}
+
+-- c.go --
+package main
+
+func c() {
+    // Update 1
+}
+
+-- .commit --
+Update a.go and c.go together
+
+-- a.go --
+package main
+
+func a() {
+    // Update 3
+}
+
+-- d.go --
+package main
+
+func d() {
+    // Update 1
+}
+
+-- .commit --
+Update a.go and d.go together
+
+-- a.go --
+package main
+
+func a() {
+    // Update 4 - first time, will report b.go, c.go, d.go
+}
+
+-- .commit --
+First review reports all related files
+
+-- .run_test --
+OK
+-- b.go --
+package main
+
+func b() {
+    // Update 2
+}
+
+-- c.go --
+package main
+
+func c() {
+    // Update 2 - b.go and c.go already reported, but should still return full set
+    // because this is a different changeset that includes both files
+}
+
+-- .commit --
+Different changeset with two files, one relationship is new
+
+-- .run_test --
+OK
