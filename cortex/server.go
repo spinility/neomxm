@@ -264,9 +264,9 @@ func (s *Server) convertFromLLMResponse(resp *llm.Response, duration time.Durati
 	chatResp := &ChatResponse{
 		ID:         resp.ID,
 		Model:      resp.Model,
-		Role:       string(resp.Role),
+		Role:       resp.Role.String(),
 		Content:    make([]Content, len(resp.Content)),
-		StopReason: string(resp.StopReason),
+		StopReason: resp.StopReason.String(),
 		Usage: UsageInfo{
 			InputTokens:  int(resp.Usage.InputTokens),
 			OutputTokens: int(resp.Usage.OutputTokens),
@@ -280,7 +280,7 @@ func (s *Server) convertFromLLMResponse(resp *llm.Response, duration time.Durati
 	// Convert content
 	for i, content := range resp.Content {
 		chatResp.Content[i] = Content{
-			Type: string(content.Type),
+			Type: content.Type.String(),
 			Text: content.Text,
 			ID:   content.ID,
 			Name: content.ToolName,

@@ -186,7 +186,7 @@ func (c *Client) convertRequest(req *llm.Request) *CortexRequest {
 	// Convert tool choice
 	if req.ToolChoice != nil {
 		cortexReq.ToolChoice = &CortexToolChoiceReq{
-			Type: toolChoiceTypeToString(req.ToolChoice.Type),
+			Type: req.ToolChoice.Type.String(),
 			Name: req.ToolChoice.Name,
 		}
 	}
@@ -270,11 +270,6 @@ func stringToContentType(s string) llm.ContentType {
 	default:
 		return llm.ContentTypeText
 	}
-}
-
-func toolChoiceTypeToString(tct llm.ToolChoiceType) string {
-	// Assuming ToolChoiceType has similar values
-	return string(tct)
 }
 
 func stringToStopReason(s string) llm.StopReason {
