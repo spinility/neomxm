@@ -1,0 +1,10 @@
+node_modules
+
+# Local environment variables
+.envrc
+
+# goreleaser builds
+dist
+
+# makefile artifact
+/sketch

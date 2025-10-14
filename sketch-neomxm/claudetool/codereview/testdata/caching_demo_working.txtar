@@ -1,0 +1,108 @@
+Tests related files caching with a working relationship pattern
+
+-- a.go --
+package main
+
+func a() {}
+
+-- b.go --
+package main
+
+func b() {}
+
+-- c.go --
+package main
+
+func c() {}
+
+-- p.go --
+package p
+
+func d() {}
+
+-- .commit --
+Add functions to a.go and b.go
+
+-- a.go --
+package main
+
+func a() {
+    // Update 1
+}
+
+-- b.go --
+package main
+
+func b() {
+    // Update 1
+}
+
+-- .commit --
+Add functions to a.go and b.go again
+
+-- a.go --
+package main
+
+func a() {
+    // Update 2
+}
+
+-- b.go --
+package main
+
+func b() {
+    // Update 2
+}
+
+-- .commit --
+Add functions to a.go and c.go
+
+-- a.go --
+package main
+
+func a() {
+    // Update 3
+}
+
+-- c.go --
+package main
+
+func c() {
+    // Update 1
+}
+
+-- .commit --
+Update file a.go only (first time)
+
+-- a.go --
+package main
+
+func a() {
+    // Update 4 - first analysis
+}
+
+-- .commit --
+First analysis
+
+-- .run_test --
+# Info
+
+Potentially related files:
+
+- p.go (30%)
+
+These files have historically changed with the files you have modified. Consider whether they require updates as well.
+
+
+-- a.go --
+package main
+
+func a() {
+    // Update 5 - second analysis (should cache related files)
+}
+
+-- .commit --
+Second analysis (should cache related files)
+
+-- .run_test --
+OK

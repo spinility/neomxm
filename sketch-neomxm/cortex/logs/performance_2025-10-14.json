@@ -1,0 +1,93 @@
+[
+  {
+    "timestamp": "2025-10-14T15:12:30Z",
+    "expert": "FirstAttendant",
+    "model": "gpt-5-nano",
+    "duration": 1200000000,
+    "tokens_input": 50,
+    "tokens_output": 30,
+    "success": true
+  },
+  {
+    "timestamp": "2025-10-14T15:22:30Z",
+    "expert": "FirstAttendant",
+    "model": "gpt-5-nano",
+    "duration": 1500000000,
+    "tokens_input": 80,
+    "tokens_output": 120,
+    "success": true
+  },
+  {
+    "timestamp": "2025-10-14T15:32:30Z",
+    "expert": "SecondThought",
+    "model": "deepseek-chat",
+    "duration": 5000000000,
+    "tokens_input": 500,
+    "tokens_output": 800,
+    "success": true
+  },
+  {
+    "timestamp": "2025-10-14T15:37:30Z",
+    "expert": "FirstAttendant",
+    "model": "gpt-5-nano",
+    "duration": 900000000,
+    "tokens_input": 40,
+    "tokens_output": 25,
+    "success": true
+  },
+  {
+    "timestamp": "2025-10-14T15:42:30Z",
+    "expert": "Elite",
+    "model": "claude-sonnet-4-5-20250929",
+    "duration": 12000000000,
+    "tokens_input": 2000,
+    "tokens_output": 3500,
+    "success": true,
+    "escalated": true
+  },
+  {
+    "timestamp": "2025-10-14T15:47:30Z",
+    "expert": "FirstAttendant",
+    "model": "gpt-5-nano",
+    "duration": 1800000000,
+    "tokens_input": 100,
+    "tokens_output": 150,
+    "success": true
+  },
+  {
+    "timestamp": "2025-10-14T15:52:30Z",
+    "expert": "SecondThought",
+    "model": "deepseek-chat",
+    "duration": 8000000000,
+    "tokens_input": 800,
+    "tokens_output": 1200,
+    "success": true
+  },
+  {
+    "timestamp": "2025-10-14T15:57:30Z",
+    "expert": "FirstAttendant",
+    "model": "gpt-5-nano",
+    "duration": 2000000000,
+    "tokens_input": 150,
+    "tokens_output": 200,
+    "success": true
+  },
+  {
+    "timestamp": "2025-10-14T16:02:30Z",
+    "expert": "FirstAttendant",
+    "model": "gpt-5-nano",
+    "duration": 1000000000,
+    "tokens_input": 60,
+    "tokens_output": 40,
+    "success": true
+  },
+  {
+    "timestamp": "2025-10-14T16:07:30Z",
+    "expert": "FirstAttendant",
+    "model": "gpt-5-nano",
+    "duration": 800000000,
+    "tokens_input": 45,
+    "tokens_output": 30,
+    "success": true
+  }
+]
