@@ -78,19 +78,26 @@ ENVEOF
     exit 0
 fi
 
-# Load environment variables
-echo -e "${BLUE}📋 Loading configuration from .env...${NC}"
-set -a  # Automatically export all variables
-source .env
-set +a  # Stop auto-exporting
+# Load environment variables from .env if it exists
+if [ -f ".env" ]; then
+    echo -e "${BLUE}📋 Loading configuration from .env...${NC}"
+    set -a  # Automatically export all variables
+    source .env
+    set +a  # Stop auto-exporting
+else
+    echo -e "${YELLOW}⚠️  No .env file found, using environment variables${NC}"
+fi
 
 # Check if at least one API key is set
 if [ -z "$ANTHROPIC_API_KEY" ] && [ -z "$OPENAI_API_KEY" ] && [ -z "$DEEPSEEK_API_KEY" ]; then
-    echo -e "${RED}❌ Error: No API keys configured in .env${NC}"
-    echo "   Please set at least one of:"
-    echo "   - ANTHROPIC_API_KEY"
-    echo "   - OPENAI_API_KEY"
-    echo "   - DEEPSEEK_API_KEY"
+    echo -e "${RED}❌ Error: No API keys configured${NC}"
+    echo "   Please either:"
+    echo "   1. Create a .env file with:"
+    echo "      ANTHROPIC_API_KEY=your_key"
+    echo "      OPENAI_API_KEY=your_key"
+    echo "      DEEPSEEK_API_KEY=your_key"
+    echo "   2. Export the API keys before running this script:"
+    echo "      export ANTHROPIC_API_KEY=your_key"
     exit 1
 fi
 
