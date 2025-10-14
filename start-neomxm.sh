@@ -200,18 +200,12 @@ echo ""
 echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 echo ""
 
-# Change to the sketch-neomxm directory and launch
-cd "${PWD}/sketch-neomxm" || {
-    echo -e "${RED}❌ Error: Cannot change to sketch-neomxm directory${NC}"
-    exit 1
-}
-
 # Verify the binary exists
-if [ ! -x "./sketch-neomxm" ]; then
+if [ ! -x "sketch-neomxm/sketch-neomxm" ]; then
     echo -e "${RED}❌ Error: sketch-neomxm binary not found or not executable${NC}"
-    echo "   Path: $(pwd)/sketch-neomxm"
+    echo "   Path: $(pwd)/sketch-neomxm/sketch-neomxm"
     exit 1
 fi
 
 export CORTEX_URL=http://localhost:8181
-exec ./sketch-neomxm -skaband-addr= "$@"
+exec sketch-neomxm/sketch-neomxm -skaband-addr="" "$@"
