@@ -158,4 +158,4 @@ echo ""
 
 cd sketch-neomxm
 export CORTEX_URL=http://localhost:8181
-exec ./sketch "$@"
+exec ./sketch -skaband-addr="" "$@"
