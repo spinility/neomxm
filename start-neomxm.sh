@@ -208,4 +208,4 @@ if [ ! -x "sketch-neomxm/sketch-neomxm" ]; then
 fi
 
 export CORTEX_URL=http://localhost:8181
-exec sketch-neomxm/sketch-neomxm -skaband-addr="" "$@"
+exec sketch-neomxm/sketch-neomxm -skaband-addr="" -unsafe "$@"
