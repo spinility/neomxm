@@ -551,9 +551,10 @@ func createDockerContainer(ctx context.Context, cntrName, hostPort, relPath, img
 		cmdArgs = append(cmdArgs, "-e", envVar)
 	}
 
-	// Forward CORTEX_URL if set, mapping localhost to host.docker.internal
+	// Forward CORTEX_URL if set, mapping localhost to host IP
 	if cortexURL := os.Getenv("CORTEX_URL"); cortexURL != "" {
-		// Replace localhost with host.docker.internal so container can reach host
+		// On Linux/WSL, use host.docker.internal with --add-host below
+		// Just replace localhost/127.0.0.1 with host.docker.internal
 		cortexURL = strings.Replace(cortexURL, "localhost", "host.docker.internal", 1)
 		cortexURL = strings.Replace(cortexURL, "127.0.0.1", "host.docker.internal", 1)
 		cmdArgs = append(cmdArgs, "-e", "CORTEX_URL="+cortexURL)
@@ -574,7 +575,19 @@ func createDockerContainer(ctx context.Context, cntrName, hostPort, relPath, img
 		cmdArgs = append(cmdArgs, "-p", "0:22") // use an ephemeral host port for ssh.
 	}
 	// colima does this by default, but Linux docker seems to need this set explicitly
-	cmdArgs = append(cmdArgs, "--add-host", "host.docker.internal:host-gateway")
+	// On Linux, detect docker0 IP for host.docker.internal
+	if os.Getenv("CORTEX_URL") != "" && runtime.GOOS == "linux" {
+		// Try to detect docker0 bridge IP
+		docker0IP := "172.17.0.1" // default
+		if out, err := exec.CommandContext(ctx, "sh", "-c", "ip -4 addr show docker0 | grep -oP '(?<=inet\\s)\\d+(\\.\\d+){3}'").Output(); err == nil {
+			if ip := strings.TrimSpace(string(out)); ip != "" {
+				docker0IP = ip
+			}
+		}
+		cmdArgs = append(cmdArgs, "--add-host", "host.docker.internal:"+docker0IP)
+	} else {
+		cmdArgs = append(cmdArgs, "--add-host", "host.docker.internal:host-gateway")
+	}
 
 	// Add seccomp profile to prevent killing PID 1 (the sketch process itself)
 	// Write the seccomp profile to cache directory if it doesn't exist
