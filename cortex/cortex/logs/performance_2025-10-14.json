@@ -1,0 +1,68 @@
+[
+  {
+    "timestamp": "0001-01-01T00:00:00Z",
+    "expert": "FirstAttendant",
+    "model": "gpt-5-nano",
+    "duration": 0,
+    "tokens_input": 0,
+    "tokens_output": 0,
+    "success": false,
+    "escalated": true,
+    "escalated_to": "SecondThought"
+  },
+  {
+    "timestamp": "0001-01-01T00:00:00Z",
+    "expert": "FirstAttendant",
+    "model": "gpt-5-nano",
+    "duration": 0,
+    "tokens_input": 0,
+    "tokens_output": 0,
+    "success": false,
+    "escalated": true,
+    "escalated_to": "SecondThought"
+  },
+  {
+    "timestamp": "0001-01-01T00:00:00Z",
+    "expert": "FirstAttendant",
+    "model": "gpt-5-nano",
+    "duration": 0,
+    "tokens_input": 0,
+    "tokens_output": 0,
+    "success": false,
+    "escalated": true,
+    "escalated_to": "SecondThought"
+  },
+  {
+    "timestamp": "0001-01-01T00:00:00Z",
+    "expert": "FirstAttendant",
+    "model": "gpt-5-nano",
+    "duration": 0,
+    "tokens_input": 0,
+    "tokens_output": 0,
+    "success": false,
+    "escalated": true,
+    "escalated_to": "SecondThought"
+  },
+  {
+    "timestamp": "0001-01-01T00:00:00Z",
+    "expert": "FirstAttendant",
+    "model": "gpt-5-nano",
+    "duration": 0,
+    "tokens_input": 0,
+    "tokens_output": 0,
+    "success": false,
+    "escalated": true,
+    "escalated_to": "SecondThought"
+  },
+  {
+    "timestamp": "0001-01-01T00:00:00Z",
+    "expert": "FirstAttendant",
+    "model": "gpt-5-nano",
+    "duration": 0,
+    "tokens_input": 0,
+    "tokens_output": 0,
+    "success": false,
+    "escalated": true,
+    "escalated_to": "SecondThought"
+  }
+]
