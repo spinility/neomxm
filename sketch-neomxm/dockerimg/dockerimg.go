@@ -575,11 +575,16 @@ func createDockerContainer(ctx context.Context, cntrName, hostPort, relPath, img
 		cmdArgs = append(cmdArgs, "-p", "0:22") // use an ephemeral host port for ssh.
 	}
 	// colima does this by default, but Linux docker seems to need this set explicitly
-	// On Linux, also try to bind to host network if CORTEX_URL is set
+	// On Linux, detect docker0 IP for host.docker.internal
 	if os.Getenv("CORTEX_URL") != "" && runtime.GOOS == "linux" {
-		// Use extra_hosts to map host.docker.internal to the actual host
-		// First try host-gateway, then fallback to detecting docker0 IP
-		cmdArgs = append(cmdArgs, "--add-host", "host.docker.internal:172.17.0.1")
+		// Try to detect docker0 bridge IP
+		docker0IP := "172.17.0.1" // default
+		if out, err := exec.CommandContext(ctx, "sh", "-c", "ip -4 addr show docker0 | grep -oP '(?<=inet\\s)\\d+(\\.\\d+){3}'").Output(); err == nil {
+			if ip := strings.TrimSpace(string(out)); ip != "" {
+				docker0IP = ip
+			}
+		}
+		cmdArgs = append(cmdArgs, "--add-host", "host.docker.internal:"+docker0IP)
 	} else {
 		cmdArgs = append(cmdArgs, "--add-host", "host.docker.internal:host-gateway")
 	}
