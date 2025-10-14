@@ -202,6 +202,19 @@ func (e *Expert) enhanceRequest(request *llm.Request) *llm.Request {
 		enhanced.System = append([]llm.SystemContent{systemContent}, enhanced.System...)
 	}
 
+	// Tier 1 experts (like FirstAttendant with gpt-5-nano) don't support tools
+	// Clear tools and force escalation if tools are needed
+	if e.Profile.Tier == 1 && len(request.Tools) > 0 {
+		enhanced.Tools = nil
+		enhanced.ToolChoice = nil
+		// Add a note in the system prompt that tools aren't available
+		toolNote := llm.SystemContent{
+			Text: "NOTE: You do not have access to tools. If this request requires tool execution (file operations, bash commands, etc.), respond with low confidence and escalate to SecondThought.",
+			Type: "text",
+		}
+		enhanced.System = append(enhanced.System, toolNote)
+	}
+
 	return &enhanced
 }
 
