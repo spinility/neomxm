@@ -136,7 +136,15 @@ if [ ! -f "cortex-server" ] || [ "$REBUILD" = true ]; then
     else
         echo -e "${YELLOW}⚠️  cortex-server not built. Building now...${NC}"
     fi
-    go build -o cortex-server ./cortex/cmd/cortex-server/
+    if ! go build -o cortex-server ./cortex/cmd/cortex-server/ 2>&1; then
+        echo -e "${RED}❌ Error: Failed to build cortex-server${NC}"
+        echo "   Make sure Go is installed: go version"
+        exit 1
+    fi
+    if [ ! -f "cortex-server" ]; then
+        echo -e "${RED}❌ Error: cortex-server binary not created${NC}"
+        exit 1
+    fi
     echo -e "${GREEN}✓ cortex-server built${NC}"
 fi
 
@@ -148,8 +156,16 @@ if [ ! -f "sketch-neomxm/sketch-neomxm" ] || [ "$REBUILD" = true ]; then
         echo -e "${YELLOW}⚠️  sketch-neomxm not built. Building now...${NC}"
     fi
     cd sketch-neomxm
-    make
+    if ! make 2>&1; then
+        echo -e "${RED}❌ Error: Failed to build sketch-neomxm${NC}"
+        cd ..
+        exit 1
+    fi
     cd ..
+    if [ ! -f "sketch-neomxm/sketch-neomxm" ]; then
+        echo -e "${RED}❌ Error: sketch-neomxm binary not created${NC}"
+        exit 1
+    fi
     echo -e "${GREEN}✓ sketch-neomxm built${NC}"
 fi
 
@@ -179,10 +195,21 @@ pkill -f 'cortex-server' 2>/dev/null || true
 pkill -f 'sketch-neomxm.*-unsafe' 2>/dev/null || true
 sleep 1
 
+# Verify cortex-server binary exists and is executable
+if [ ! -x "./cortex-server" ]; then
+    echo -e "${RED}❌ Error: cortex-server binary not found or not executable${NC}"
+    echo "   Path: $(pwd)/cortex-server"
+    ls -la cortex-server 2>&1 || echo "   File does not exist"
+    exit 1
+fi
+
 # Start Cortex Server in background
 echo -e "${BLUE}🚀 Starting Cortex Server on port 8181...${NC}"
+echo -e "${BLUE}   Working directory: $(pwd)${NC}"
+echo -e "${BLUE}   Command: ./cortex-server${NC}"
 ./cortex-server > cortex-server.log 2>&1 &
 CORTEX_PID=$!
+echo -e "${BLUE}   PID: $CORTEX_PID${NC}"
 
 # Wait for cortex to be ready
 echo -e "${YELLOW}⏳ Waiting for Cortex to be ready...${NC}"
@@ -194,6 +221,9 @@ for i in {1..30}; do
     if [ $i -eq 30 ]; then
         echo -e "${RED}❌ Error: Cortex Server failed to start${NC}"
         echo "   Check cortex-server.log for details"
+        echo ""
+        echo -e "${YELLOW}Last 20 lines of cortex-server.log:${NC}"
+        tail -20 cortex-server.log 2>/dev/null || echo "   (log file not found or empty)"
         kill $CORTEX_PID 2>/dev/null || true
         exit 1
     fi
