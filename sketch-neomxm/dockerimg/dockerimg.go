@@ -551,11 +551,22 @@ func createDockerContainer(ctx context.Context, cntrName, hostPort, relPath, img
 		cmdArgs = append(cmdArgs, "-e", envVar)
 	}
 
-	// Forward CORTEX_URL if set, mapping localhost to host.docker.internal
+	// Forward CORTEX_URL if set, mapping localhost to host IP
 	if cortexURL := os.Getenv("CORTEX_URL"); cortexURL != "" {
-		// Replace localhost with host.docker.internal so container can reach host
-		cortexURL = strings.Replace(cortexURL, "localhost", "host.docker.internal", 1)
-		cortexURL = strings.Replace(cortexURL, "127.0.0.1", "host.docker.internal", 1)
+		// On Linux/WSL, host.docker.internal doesn't always work
+		// Try to detect host IP and use it instead
+		hostIP := "host.docker.internal"
+		if runtime.GOOS == "linux" {
+			// Try to get default gateway IP (works on most Linux/WSL setups)
+			if out, err := exec.CommandContext(ctx, "sh", "-c", "ip route | grep default | awk '{print $3}' | head -n1").Output(); err == nil {
+				if ip := strings.TrimSpace(string(out)); ip != "" {
+					hostIP = ip
+				}
+			}
+		}
+		// Replace localhost with detected host IP
+		cortexURL = strings.Replace(cortexURL, "localhost", hostIP, 1)
+		cortexURL = strings.Replace(cortexURL, "127.0.0.1", hostIP, 1)
 		cmdArgs = append(cmdArgs, "-e", "CORTEX_URL="+cortexURL)
 	}
 

@@ -167,5 +167,8 @@ echo ""
 
 cd sketch-neomxm
 # Set CORTEX_URL - will be automatically mapped to host.docker.internal in container
-export CORTEX_URL=http://localhost:8181
+# On Linux, we also try to get the docker0 interface IP as fallback
+if [ -z "$CORTEX_URL" ]; then
+    export CORTEX_URL=http://localhost:8181
+fi
 exec ./sketch-neomxm -skaband-addr="" "$@"
