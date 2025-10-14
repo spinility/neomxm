@@ -37,13 +37,33 @@ This component is based on the open-source [Sketch project](https://github.com/b
 
 ## Getting Started
 
+### Option 1: Using the startup script (Recommended)
+
+```bash
+# Configure your API keys
+cp .env.example .env
+# Edit .env with your API keys (nano .env or vim .env)
+
+# Start Cortex + sketch-neomxm (auto-builds if needed)
+./start-neomxm.sh
+```
+
+The script will:
+- Build the binary if it doesn't exist (`make` is automatically run)
+- Start the Cortex server on port 8181
+- Launch sketch-neomxm connected to Cortex
+
+### Option 2: Manual build and run
+
 ```bash
 cd sketch-neomxm
 cp .env.example .env
 # Edit .env with your API keys
-make
-./sketch
+make  # Binary is not committed to git, you must build it
+./sketch-neomxm
 ```
+
+**Note**: The `sketch-neomxm` binary is not included in git (135+ MB). You must run `make` after cloning or pulling changes.
 
 See [sketch-neomxm/CONFIGURATION.md](sketch-neomxm/CONFIGURATION.md) for detailed setup.
 

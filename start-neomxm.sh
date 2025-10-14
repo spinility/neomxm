@@ -89,17 +89,25 @@ fi
 
 echo -e "${GREEN}✓ Configuration loaded${NC}"
 
-# Check if binaries exist
+# Check if binaries exist and build if needed
 if [ ! -f "cortex-server" ]; then
-    echo -e "${RED}❌ Error: cortex-server binary not found${NC}"
-    echo "   Run: go build -o cortex-server ./cortex/cmd/cortex-server/"
-    exit 1
+    echo -e "${YELLOW}⚠️  cortex-server not built. Building now...${NC}"
+    go build -o cortex-server ./cortex/cmd/cortex-server/
+    if [ $? -ne 0 ]; then
+        echo -e "${RED}❌ Error: Failed to build cortex-server${NC}"
+        exit 1
+    fi
+    echo -e "${GREEN}✓ cortex-server built${NC}"
 fi
 
-if [ ! -f "sketch-neomxm/sketch" ]; then
+if [ ! -f "sketch-neomxm/sketch-neomxm" ]; then
     echo -e "${YELLOW}⚠️  sketch-neomxm not built. Building now...${NC}"
     cd sketch-neomxm
     make
+    if [ $? -ne 0 ]; then
+        echo -e "${RED}❌ Error: Failed to build sketch-neomxm${NC}"
+        exit 1
+    fi
     cd ..
     echo -e "${GREEN}✓ sketch-neomxm built${NC}"
 fi
@@ -161,6 +169,7 @@ echo -e "  ${GREEN}✓ sketch-neomxm:${NC} Starting..."
 echo ""
 echo -e "${YELLOW}💡 Tips:${NC}"
 echo -e "   • All AI requests will route through Cortex"
+echo -e "   • Cortex server accessible at host.docker.internal:8181 from container"
 echo -e "   • Check cortex-server.log for routing logs"
 echo -e "   • Press Ctrl+C to shutdown everything"
 echo ""
@@ -168,5 +177,6 @@ echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━
 echo ""
 
 cd sketch-neomxm
+# Set CORTEX_URL - will be automatically mapped to host.docker.internal in container
 export CORTEX_URL=http://localhost:8181
-exec ./sketch -skaband-addr="" "$@"
+exec ./sketch-neomxm -skaband-addr="" "$@"

@@ -550,6 +550,15 @@ func createDockerContainer(ctx context.Context, cntrName, hostPort, relPath, img
 	for _, envVar := range getEnvForwardingFromGitConfig(ctx) {
 		cmdArgs = append(cmdArgs, "-e", envVar)
 	}
+
+	// Forward CORTEX_URL if set, mapping localhost to host.docker.internal
+	if cortexURL := os.Getenv("CORTEX_URL"); cortexURL != "" {
+		// Replace localhost with host.docker.internal so container can reach host
+		cortexURL = strings.Replace(cortexURL, "localhost", "host.docker.internal", 1)
+		cortexURL = strings.Replace(cortexURL, "127.0.0.1", "host.docker.internal", 1)
+		cmdArgs = append(cmdArgs, "-e", "CORTEX_URL="+cortexURL)
+	}
+
 	if config.ModelURL != "" {
 		cmdArgs = append(cmdArgs, "-e", "SKETCH_MODEL_URL="+config.ModelURL)
 	}
@@ -589,11 +598,11 @@ func createDockerContainer(ctx context.Context, cntrName, hostPort, relPath, img
 	}
 	cmdArgs = append(cmdArgs, imgName)
 
-	// Add command: either [sketch] or [subtrace run -- sketch]
+	// Add command: either [sketch-neomxm] or [subtrace run -- sketch-neomxm]
 	if config.SubtraceToken != "" {
-		cmdArgs = append(cmdArgs, "/usr/local/bin/subtrace", "run", "--", "/bin/sketch")
+		cmdArgs = append(cmdArgs, "/usr/local/bin/subtrace", "run", "--", "/bin/sketch-neomxm")
 	} else {
-		cmdArgs = append(cmdArgs, "/bin/sketch")
+		cmdArgs = append(cmdArgs, "/bin/sketch-neomxm")
 	}
 
 	// Add all sketch arguments
@@ -903,7 +912,7 @@ func buildLayeredImage(ctx context.Context, imgName, baseImage, gitRoot string, 
 	}
 
 	line("WORKDIR /app")
-	line(`CMD ["/bin/sketch"]`)
+	line(`CMD ["/bin/sketch-neomxm"]`)
 	dockerfileContent := buf.String()
 
 	// Create a temporary directory for the Dockerfile
@@ -1193,7 +1202,7 @@ func copyEmbeddedLinuxBinaryToContainer(ctx context.Context, containerName strin
 		tw := tar.NewWriter(pw)
 
 		hdr := &tar.Header{
-			Name: "bin/sketch", // final path inside the container
+			Name: "bin/sketch-neomxm", // final path inside the container
 			Mode: 0o700,
 			Size: int64(len(bin)),
 		}
