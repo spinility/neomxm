@@ -553,20 +553,10 @@ func createDockerContainer(ctx context.Context, cntrName, hostPort, relPath, img
 
 	// Forward CORTEX_URL if set, mapping localhost to host IP
 	if cortexURL := os.Getenv("CORTEX_URL"); cortexURL != "" {
-		// On Linux/WSL, host.docker.internal doesn't always work
-		// Try to detect host IP and use it instead
-		hostIP := "host.docker.internal"
-		if runtime.GOOS == "linux" {
-			// Try to get default gateway IP (works on most Linux/WSL setups)
-			if out, err := exec.CommandContext(ctx, "sh", "-c", "ip route | grep default | awk '{print $3}' | head -n1").Output(); err == nil {
-				if ip := strings.TrimSpace(string(out)); ip != "" {
-					hostIP = ip
-				}
-			}
-		}
-		// Replace localhost with detected host IP
-		cortexURL = strings.Replace(cortexURL, "localhost", hostIP, 1)
-		cortexURL = strings.Replace(cortexURL, "127.0.0.1", hostIP, 1)
+		// On Linux/WSL, use host.docker.internal with --add-host below
+		// Just replace localhost/127.0.0.1 with host.docker.internal
+		cortexURL = strings.Replace(cortexURL, "localhost", "host.docker.internal", 1)
+		cortexURL = strings.Replace(cortexURL, "127.0.0.1", "host.docker.internal", 1)
 		cmdArgs = append(cmdArgs, "-e", "CORTEX_URL="+cortexURL)
 	}
 
@@ -585,7 +575,14 @@ func createDockerContainer(ctx context.Context, cntrName, hostPort, relPath, img
 		cmdArgs = append(cmdArgs, "-p", "0:22") // use an ephemeral host port for ssh.
 	}
 	// colima does this by default, but Linux docker seems to need this set explicitly
-	cmdArgs = append(cmdArgs, "--add-host", "host.docker.internal:host-gateway")
+	// On Linux, also try to bind to host network if CORTEX_URL is set
+	if os.Getenv("CORTEX_URL") != "" && runtime.GOOS == "linux" {
+		// Use extra_hosts to map host.docker.internal to the actual host
+		// First try host-gateway, then fallback to detecting docker0 IP
+		cmdArgs = append(cmdArgs, "--add-host", "host.docker.internal:172.17.0.1")
+	} else {
+		cmdArgs = append(cmdArgs, "--add-host", "host.docker.internal:host-gateway")
+	}
 
 	// Add seccomp profile to prevent killing PID 1 (the sketch process itself)
 	// Write the seccomp profile to cache directory if it doesn't exist
