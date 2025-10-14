@@ -8,3 +8,6 @@ dist
 
 # makefile artifact
 /sketch
+.env
+cortex-server.log
+/cortex-server
