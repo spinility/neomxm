@@ -631,13 +631,16 @@ func resolveModel(flags CLIFlags) (spec modelSpec, pubKey string, err error) {
 
 	if flags.skabandAddr == "" {
 		// When not using skaband, get API key from environment or flag
-		envName := envNameForModel(flags.modelName)
-		if envName == "" {
-			return modelSpec{}, "", fmt.Errorf("unknown model '%s', use -list-models to see available models", flags.modelName)
-		}
-		apiKey = cmp.Or(os.Getenv(envName), flags.llmAPIKey)
-		if apiKey == "" && envName != "NONE" {
-			return modelSpec{}, "", fmt.Errorf("%s environment variable is not set, -llm-api-key flag not provided", envName)
+		// Skip API key check if CORTEX_URL is set (routing through Cortex)
+		if os.Getenv("CORTEX_URL") == "" {
+			envName := envNameForModel(flags.modelName)
+			if envName == "" {
+				return modelSpec{}, "", fmt.Errorf("unknown model '%s', use -list-models to see available models", flags.modelName)
+			}
+			apiKey = cmp.Or(os.Getenv(envName), flags.llmAPIKey)
+			if apiKey == "" && envName != "NONE" {
+				return modelSpec{}, "", fmt.Errorf("%s environment variable is not set, -llm-api-key flag not provided", envName)
+			}
 		}
 	}
 
