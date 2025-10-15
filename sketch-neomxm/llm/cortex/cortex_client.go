@@ -151,19 +151,19 @@ type CortexUsage struct {
 // convertRequest converts llm.Request to CortexRequest
 func (c *Client) convertRequest(req *llm.Request) *CortexRequest {
 	cortexReq := &CortexRequest{
-		Messages: make([]CortexMessage, len(req.Messages)),
-		System:   make([]CortexSystemMsg, len(req.System)),
-		Tools:    make([]CortexTool, len(req.Tools)),
+		System: make([]CortexSystemMsg, len(req.System)),
+		Tools:  make([]CortexTool, len(req.Tools)),
 	}
 
-	// Convert messages
-	for i, msg := range req.Messages {
-		cortexReq.Messages[i] = CortexMessage{
-			Role:    roleToString(msg.Role),
-			Content: make([]CortexContent, len(msg.Content)),
-		}
-		for j, content := range msg.Content {
-			cortexReq.Messages[i].Content[j] = CortexContent{
+	// Convert messages (filter out empty content and empty messages)
+	for _, msg := range req.Messages {
+		var contents []CortexContent
+		for _, content := range msg.Content {
+			// Skip empty text content
+			if content.Type == llm.ContentTypeText && content.Text == "" {
+				continue
+			}
+			contents = append(contents, CortexContent{
 				Type:      contentTypeToString(content.Type),
 				Text:      content.Text,
 				ID:        content.ID,
@@ -171,7 +171,14 @@ func (c *Client) convertRequest(req *llm.Request) *CortexRequest {
 				Input:     content.ToolInput,
 				ToolUseID: content.ToolUseID,
 				IsError:   content.ToolError,
-			}
+			})
+		}
+		// Only add message if it has content
+		if len(contents) > 0 {
+			cortexReq.Messages = append(cortexReq.Messages, CortexMessage{
+				Role:    roleToString(msg.Role),
+				Content: contents,
+			})
 		}
 	}
 

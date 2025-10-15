@@ -225,8 +225,13 @@ func (c *Convo) messageRequest(msg llm.Message) *llm.Request {
 		}
 	}
 
+	// Only add the new message if it has content
+	if len(msg.Content) > 0 {
+		nonEmptyMessages = append(nonEmptyMessages, msg)
+	}
+
 	mr := &llm.Request{
-		Messages: append(nonEmptyMessages, msg), // not yet committed to keeping msg
+		Messages: nonEmptyMessages,
 		System:   system,
 		Tools:    c.Tools,
 	}
