@@ -179,13 +179,17 @@ func (s *Server) handleChat(w http.ResponseWriter, r *http.Request) {
 			"index", i,
 			"role", msg.Role,
 			"num_content", len(msg.Content))
+		if len(msg.Content) == 0 {
+			slog.WarnContext(ctx, "MESSAGE HAS EMPTY CONTENT", "index", i)
+		}
 		for j, c := range msg.Content {
 			slog.InfoContext(ctx, "CONTENT",
 				"msg_index", i,
 				"content_index", j,
 				"type", c.Type,
 				"text_len", len(c.Text),
-				"has_tool_result", len(c.ToolResult) > 0)
+				"has_tool_result", len(c.ToolResult) > 0,
+				"tool_use_id", c.ToolUseID)
 		}
 	}
 
