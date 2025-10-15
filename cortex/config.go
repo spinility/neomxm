@@ -62,7 +62,7 @@ func LoadConfigFromEnv() *Config {
 			DeepSeek:  os.Getenv("DEEPSEEK_API_KEY"),
 		},
 		APIEndpoints: &APIEndpoints{
-			Anthropic: getEnvOrDefault("ANTHROPIC_API_BASE", "https://api.anthropic.com"),
+			Anthropic: getEnvOrDefault("ANTHROPIC_API_BASE", "https://api.anthropic.com/v1/messages"),
 			OpenAI:    getEnvOrDefault("OPENAI_API_BASE", "https://api.openai.com/v1"),
 			DeepSeek:  getEnvOrDefault("DEEPSEEK_API_BASE", "https://api.deepseek.com"),
 		},
