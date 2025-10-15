@@ -200,6 +200,18 @@ func (s *Server) handleChat(w http.ResponseWriter, r *http.Request) {
 	// Convert response
 	chatResp := s.convertFromLLMResponse(resp, time.Since(start))
 
+	// Debug: log response details
+	slog.InfoContext(ctx, "SENDING RESPONSE",
+		"stop_reason", chatResp.StopReason,
+		"num_content", len(chatResp.Content))
+	for i, c := range chatResp.Content {
+		slog.InfoContext(ctx, "RESPONSE CONTENT",
+			"index", i,
+			"type", c.Type,
+			"has_name", c.Name != "",
+			"has_input", len(c.Input) > 0)
+	}
+
 	// Send response
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(chatResp); err != nil {
