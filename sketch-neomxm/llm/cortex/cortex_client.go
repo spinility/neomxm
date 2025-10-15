@@ -232,14 +232,24 @@ func (c *Client) convertResponse(resp *CortexResponse) *llm.Response {
 
 	// Convert content
 	for i, content := range resp.Content {
+		contentType := stringToContentType(content.Type)
 		llmResp.Content[i] = llm.Content{
-			Type:      stringToContentType(content.Type),
+			Type:      contentType,
 			Text:      content.Text,
 			ID:        content.ID,
 			ToolName:  content.Name,
 			ToolInput: content.Input,
 		}
+		// Debug log for tool_use content
+		if contentType == llm.ContentTypeToolUse {
+			fmt.Printf("[CORTEX CLIENT] Converted tool_use: ID=%s, Name=%s, HasInput=%v\n", 
+				content.ID, content.Name, len(content.Input) > 0)
+		}
 	}
+
+	// Debug log for stop reason
+	fmt.Printf("[CORTEX CLIENT] Response: StopReason=%s, NumContent=%d\n", 
+		llmResp.StopReason, len(llmResp.Content))
 
 	return llmResp
 }

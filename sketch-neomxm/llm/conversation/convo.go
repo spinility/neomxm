@@ -417,7 +417,9 @@ func (c *Convo) newToolUseContext(ctx context.Context, toolUseID string) (contex
 // Cancelling ctx will cancel any running tool calls.
 // The boolean return value indicates whether any of the executed tools should end the turn.
 func (c *Convo) ToolResultContents(ctx context.Context, resp *llm.Response) ([]llm.Content, bool, error) {
+	fmt.Printf("[CONVO] ToolResultContents called: StopReason=%s, NumContent=%d\n", resp.StopReason, len(resp.Content))
 	if resp.StopReason != llm.StopReasonToolUse {
+		fmt.Printf("[CONVO] Not tool_use, returning nil\n")
 		return nil, false, nil
 	}
 	// Extract all tool calls from the response, call the tools, and gather the results.
@@ -426,9 +428,11 @@ func (c *Convo) ToolResultContents(ctx context.Context, resp *llm.Response) ([]l
 
 	endsTurn := false
 	for _, part := range resp.Content {
+		fmt.Printf("[CONVO] Processing content: Type=%s, ToolName=%s, ID=%s\n", part.Type, part.ToolName, part.ID)
 		if part.Type != llm.ContentTypeToolUse {
 			continue
 		}
+		fmt.Printf("[CONVO] Found tool_use! Name=%s, ID=%s, InputLen=%d\n", part.ToolName, part.ID, len(part.ToolInput))
 		tool, err := c.findTool(part.ToolName)
 		if err == nil && tool.EndsTurn {
 			endsTurn = true
