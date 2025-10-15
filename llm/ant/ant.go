@@ -352,9 +352,19 @@ func fromLLMToolUse(tu *llm.ToolUse) *toolUse {
 }
 
 func fromLLMMessage(msg llm.Message) message {
+	// Convert and filter out empty text content blocks
+	var contents []content
+	for _, c := range msg.Content {
+		// Skip text content that is empty (not allowed by Anthropic API)
+		if c.Type == llm.ContentTypeText && c.Text == "" {
+			continue
+		}
+		contents = append(contents, fromLLMContent(c))
+	}
+	
 	return message{
 		Role:    fromLLMRole[msg.Role],
-		Content: mapped(msg.Content, fromLLMContent),
+		Content: contents,
 		ToolUse: fromLLMToolUse(msg.ToolUse),
 	}
 }
