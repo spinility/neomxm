@@ -438,6 +438,7 @@ func toLLMResponse(r *response) *llm.Response {
 
 // Do sends a request to Anthropic.
 func (s *Service) Do(ctx context.Context, ir *llm.Request) (*llm.Response, error) {
+	slog.InfoContext(ctx, "ANT.DO CALLED", "service_model", s.Model, "url", s.URL)
 	request := s.fromLLMRequest(ir)
 
 	var payload []byte
