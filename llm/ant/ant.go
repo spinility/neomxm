@@ -330,13 +330,13 @@ func fromLLMContent(c llm.Content) content {
 		d.ToolResult = toolResult
 	}
 	
-	// Anthropic API complains if Text is specified when it shouldn't be
-	// For regular text content, empty strings are not allowed
-	// For tool_result content, empty strings ARE allowed
+	// Anthropic API has complex rules about text:
+	// - text is NOT allowed for tool_use and tool_result types
+	// - text IS required for text type (even if empty) when inside tool_result
+	// - text must be non-empty for text type at message level
+	// Since we can't easily distinguish context here, always set text when it's not tool_use/tool_result
 	if c.Type != llm.ContentTypeToolResult && c.Type != llm.ContentTypeToolUse {
-		if c.Text != "" {
-			d.Text = &c.Text
-		}
+		d.Text = &c.Text
 	}
 	return d
 }
