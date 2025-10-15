@@ -331,9 +331,12 @@ func fromLLMContent(c llm.Content) content {
 	}
 	
 	// Anthropic API complains if Text is specified when it shouldn't be
-	// or not specified when it's the empty string.
+	// For regular text content, empty strings are not allowed
+	// For tool_result content, empty strings ARE allowed
 	if c.Type != llm.ContentTypeToolResult && c.Type != llm.ContentTypeToolUse {
-		d.Text = &c.Text
+		if c.Text != "" {
+			d.Text = &c.Text
+		}
 	}
 	return d
 }
