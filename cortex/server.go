@@ -230,12 +230,9 @@ func (s *Server) convertToLLMRequest(req *ChatRequest) *llm.Request {
 			role = llm.MessageRoleUser
 		}
 
-		llmReq.Messages[i] = llm.Message{
-			Role:    role,
-			Content: make([]llm.Content, len(msg.Content)),
-		}
-
-		for j, content := range msg.Content {
+		// Filter and convert content (skip empty text blocks)
+		var contents []llm.Content
+		for _, content := range msg.Content {
 			// Parse content type
 			var contentType llm.ContentType
 			switch content.Type {
@@ -249,13 +246,23 @@ func (s *Server) convertToLLMRequest(req *ChatRequest) *llm.Request {
 				contentType = llm.ContentTypeText
 			}
 
-			llmReq.Messages[i].Content[j] = llm.Content{
+			// Skip empty text content (not allowed by Anthropic API)
+			if contentType == llm.ContentTypeText && content.Text == "" {
+				continue
+			}
+
+			contents = append(contents, llm.Content{
 				Type:      contentType,
 				Text:      content.Text,
 				ID:        content.ID,
 				ToolName:  content.Name,
 				ToolInput: content.Input,
-			}
+			})
+		}
+
+		llmReq.Messages[i] = llm.Message{
+			Role:    role,
+			Content: contents,
 		}
 	}
 
