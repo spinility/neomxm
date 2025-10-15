@@ -296,3 +296,67 @@ func TestInsertMissingToolResults(t *testing.T) {
 		})
 	}
 }
+
+func TestMessageRequest_FiltersEmptyMessages(t *testing.T) {
+	srv := &ant.Service{}
+	convo := New(context.Background(), srv, nil)
+
+	// Add messages to conversation history, including one with empty content
+	convo.messages = []llm.Message{
+		{Role: llm.MessageRoleUser, Content: []llm.Content{{Type: llm.ContentTypeText, Text: "Hello"}}},
+		{Role: llm.MessageRoleAssistant, Content: []llm.Content{}}, // Empty
+		{Role: llm.MessageRoleUser, Content: []llm.Content{{Type: llm.ContentTypeText, Text: "World"}}},
+	}
+
+	// Create a new message with empty content
+	emptyMsg := llm.Message{
+		Role:    llm.MessageRoleUser,
+		Content: []llm.Content{},
+	}
+
+	req := convo.messageRequest(emptyMsg)
+
+	// Should only have 2 messages (filtering out the empty assistant message and the new empty message)
+	if len(req.Messages) != 2 {
+		t.Errorf("Expected 2 messages, got %d", len(req.Messages))
+	}
+
+	// Verify the messages are the non-empty ones
+	if req.Messages[0].Content[0].Text != "Hello" {
+		t.Errorf("Expected first message to be 'Hello', got '%s'", req.Messages[0].Content[0].Text)
+	}
+	if req.Messages[1].Content[0].Text != "World" {
+		t.Errorf("Expected second message to be 'World', got '%s'", req.Messages[1].Content[0].Text)
+	}
+}
+
+func TestMessageRequest_IncludesNonEmptyMessage(t *testing.T) {
+	srv := &ant.Service{}
+	convo := New(context.Background(), srv, nil)
+
+	// Add one message to history
+	convo.messages = []llm.Message{
+		{Role: llm.MessageRoleUser, Content: []llm.Content{{Type: llm.ContentTypeText, Text: "Hello"}}},
+	}
+
+	// Create a new message with content
+	newMsg := llm.Message{
+		Role:    llm.MessageRoleAssistant,
+		Content: []llm.Content{{Type: llm.ContentTypeText, Text: "Response"}},
+	}
+
+	req := convo.messageRequest(newMsg)
+
+	// Should have 2 messages
+	if len(req.Messages) != 2 {
+		t.Errorf("Expected 2 messages, got %d", len(req.Messages))
+	}
+
+	// Verify both messages are present
+	if req.Messages[0].Content[0].Text != "Hello" {
+		t.Errorf("Expected first message to be 'Hello', got '%s'", req.Messages[0].Content[0].Text)
+	}
+	if req.Messages[1].Content[0].Text != "Response" {
+		t.Errorf("Expected second message to be 'Response', got '%s'", req.Messages[1].Content[0].Text)
+	}
+}
