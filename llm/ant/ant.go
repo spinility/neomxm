@@ -312,17 +312,24 @@ func fromLLMContent(c llm.Content) content {
 		Thinking:     c.Thinking,
 		Data:         c.Data,
 		Signature:    c.Signature,
-		ToolName:     c.ToolName,
-		ToolInput:    c.ToolInput,
-		ToolUseID:    c.ToolUseID,
-		ToolError:    c.ToolError,
-		ToolResult:   toolResult,
 		CacheControl: fromLLMCache(c.Cache),
 	}
-	// Only set ID for tool_use and tool_result at the top level
-	if c.Type == llm.ContentTypeToolUse || c.Type == llm.ContentTypeToolResult {
+	
+	// Set fields specific to tool_use
+	if c.Type == llm.ContentTypeToolUse {
 		d.ID = c.ID
+		d.ToolName = c.ToolName
+		d.ToolInput = c.ToolInput
 	}
+	
+	// Set fields specific to tool_result
+	if c.Type == llm.ContentTypeToolResult {
+		d.ID = c.ID
+		d.ToolUseID = c.ToolUseID
+		d.ToolError = c.ToolError
+		d.ToolResult = toolResult
+	}
+	
 	// Anthropic API complains if Text is specified when it shouldn't be
 	// or not specified when it's the empty string.
 	if c.Type != llm.ContentTypeToolResult && c.Type != llm.ContentTypeToolUse {
