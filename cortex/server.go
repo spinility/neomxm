@@ -228,12 +228,11 @@ func (s *Server) handleChat(w http.ResponseWriter, r *http.Request) {
 // convertToLLMRequest converts HTTP request to LLM request
 func (s *Server) convertToLLMRequest(req *ChatRequest) *llm.Request {
 	llmReq := &llm.Request{
-		Messages: make([]llm.Message, len(req.Messages)),
-		System:   make([]llm.SystemContent, len(req.System)),
-		Tools:    make([]*llm.Tool, len(req.Tools)),
+		System: make([]llm.SystemContent, len(req.System)),
+		Tools:  make([]*llm.Tool, len(req.Tools)),
 	}
 
-	// Convert messages
+	// Convert messages (filter out messages with empty content)
 	for i, msg := range req.Messages {
 		// Parse role
 		var role llm.MessageRole
@@ -276,9 +275,14 @@ func (s *Server) convertToLLMRequest(req *ChatRequest) *llm.Request {
 			})
 		}
 
-		llmReq.Messages[i] = llm.Message{
-			Role:    role,
-			Content: contents,
+		// Only add message if it has content
+		if len(contents) > 0 {
+			llmReq.Messages = append(llmReq.Messages, llm.Message{
+				Role:    role,
+				Content: contents,
+			})
+		} else {
+			slog.Warn("Skipping message with empty content", "index", i)
 		}
 	}
 
