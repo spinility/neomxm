@@ -452,8 +452,8 @@ func (s *Service) Do(ctx context.Context, ir *llm.Request) (*llm.Response, error
 		return nil, err
 	}
 
-	if false {
-		fmt.Printf("claude request payload:\n%s\n", payload)
+	if true {
+		slog.InfoContext(ctx, "ANTHROPIC REQUEST", "model", request.Model, "payload", string(payload))
 	}
 
 	backoff := []time.Duration{15 * time.Second, 30 * time.Second, time.Minute}
@@ -560,7 +560,11 @@ func (s *Service) Do(ctx context.Context, ir *llm.Request) (*llm.Response, error
 			return nil, errors.Join(errs, fmt.Errorf("status %v: %s", resp.Status, buf))
 		default:
 			// ...retry, I guess?
-			slog.WarnContext(ctx, "anthropic_request_failed", "response", string(buf), "status_code", resp.StatusCode)
+			slog.WarnContext(ctx, "anthropic_request_failed",
+				"model", request.Model,
+				"response", string(buf),
+				"status_code", resp.StatusCode,
+				"api_version", req.Header.Get("Anthropic-Version"))
 			errs = errors.Join(errs, fmt.Errorf("status %v: %s", resp.Status, buf))
 			continue
 		}
