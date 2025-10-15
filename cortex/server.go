@@ -312,10 +312,11 @@ func (s *Server) convertFromLLMResponse(resp *llm.Response, duration time.Durati
 	// Convert content
 	for i, content := range resp.Content {
 		chatResp.Content[i] = Content{
-			Type: content.Type.String(),
-			Text: content.Text,
-			ID:   content.ID,
-			Name: content.ToolName,
+			Type:  content.Type.String(),
+			Text:  content.Text,
+			ID:    content.ID,
+			Name:  content.ToolName,
+			Input: content.ToolInput,
 		}
 	}
 
