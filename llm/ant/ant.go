@@ -307,7 +307,6 @@ func fromLLMContent(c llm.Content) content {
 	}
 
 	d := content{
-		ID:           c.ID,
 		Type:         fromLLMContentType[c.Type],
 		MediaType:    c.MediaType,
 		Thinking:     c.Thinking,
@@ -319,6 +318,10 @@ func fromLLMContent(c llm.Content) content {
 		ToolError:    c.ToolError,
 		ToolResult:   toolResult,
 		CacheControl: fromLLMCache(c.Cache),
+	}
+	// Only set ID for tool_use and tool_result at the top level
+	if c.Type == llm.ContentTypeToolUse || c.Type == llm.ContentTypeToolResult {
+		d.ID = c.ID
 	}
 	// Anthropic API complains if Text is specified when it shouldn't be
 	// or not specified when it's the empty string.
