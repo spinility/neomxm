@@ -304,9 +304,9 @@ func (s *Server) convertFromLLMResponse(resp *llm.Response, duration time.Durati
 		ID:         resp.ID,
 		Model:      resp.Model,
 		Expert:     resp.ExpertUsed,
-		Role:       resp.Role.String(),
+		Role:       toRoleString(resp.Role),
 		Content:    make([]Content, len(resp.Content)),
-		StopReason: resp.StopReason.String(),
+		StopReason: toStopReasonString(resp.StopReason),
 		Usage: UsageInfo{
 			InputTokens:  int(resp.Usage.InputTokens),
 			OutputTokens: int(resp.Usage.OutputTokens),
@@ -333,6 +333,36 @@ func (s *Server) convertFromLLMResponse(resp *llm.Response, duration time.Durati
 	}
 
 	return chatResp
+}
+
+// toRoleString converts MessageRole to snake_case string format
+func toRoleString(role llm.MessageRole) string {
+	switch role {
+	case llm.MessageRoleUser:
+		return "user"
+	case llm.MessageRoleAssistant:
+		return "assistant"
+	default:
+		return "assistant"
+	}
+}
+
+// toStopReasonString converts StopReason to snake_case string format
+func toStopReasonString(reason llm.StopReason) string {
+	switch reason {
+	case llm.StopReasonStopSequence:
+		return "stop_sequence"
+	case llm.StopReasonMaxTokens:
+		return "max_tokens"
+	case llm.StopReasonEndTurn:
+		return "end_turn"
+	case llm.StopReasonToolUse:
+		return "tool_use"
+	case llm.StopReasonRefusal:
+		return "refusal"
+	default:
+		return "end_turn"
+	}
 }
 
 // loggingMiddleware logs HTTP requests
