@@ -1,0 +1,106 @@
+name: sketch_go_tests
+on:
+  workflow_call:
+    inputs:
+      ref:
+        description: "The git ref to checkout"
+        required: false
+        type: string
+        default: ""
+      working-directory:
+        description: "Working directory for the workflow"
+        required: false
+        type: string
+        default: "${{ vars.SKETCH_WORKING_DIR || '.' }}"
+      include-slow-tests:
+        description: "Whether to include slow tests"
+        required: false
+        type: boolean
+        default: true
+  push:
+    branches-ignore:
+      - "queue-main-*"
+      - "queue-dev-*"
+  pull_request:
+jobs:
+  test:
+    runs-on: "linux-x64-ubuntu-latest-8-core"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: "${{ inputs.working-directory || vars.SKETCH_WORKING_DIR || '.'}}/go.mod"
+          cache: true
+
+      - name: Cache Go 1.24.5
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/go-build
+          key: ${{ runner.os }}-go1.24.5-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go1.24.5-
+
+      - name: Optimize APT
+        working-directory: ${{ inputs.working-directory || vars.SKETCH_WORKING_DIR || '.'}}
+        run: |
+          pwd
+          ./.github/scripts/optimize-apt.sh
+
+      - name: Install tools
+        run: |
+          go install golang.org/x/tools/gopls@latest
+          go install gotest.tools/gotestsum@latest
+          go install mvdan.cc/gofumpt@latest
+          go install golang.org/x/tools/cmd/goimports@latest
+          # Empirically (by logging into runners with tmate), there are versions of Chromium/Chrome in /opt/google/chrome
+          # and /usr/local/share/chromium/chrome-linux, and /usr/bin/chromium links to the former. Therefore, we
+          # don't need to apt-get it separately.
+
+      # If you wish to do some interactive debugging, the following is handy. It will print
+      # an SSH command that you can use to connect to the runner instance.
+      - name: tmate debugging (disabled)
+        if: false
+        run: |
+          sudo apt-get update && sudo apt-get install -y tmate
+          set -x
+          tmate -S /tmp/tmate.sock.${GITHUB_RUN_ID} new-session -d
+          tmate -S /tmp/tmate.sock.${GITHUB_RUN_ID} wait tmate-ready
+          tmate -S /tmp/tmate.sock.${GITHUB_RUN_ID} display -p '#{tmate_ssh}'
+          sleep 1800
+
+      - name: Go generate
+        working-directory: ${{ inputs.working-directory || vars.SKETCH_WORKING_DIR || '.'}}
+        run: |
+          go generate ./...
+          # if go generate created a diff
+          if ! git diff --exit-code; then
+            echo "go generate created a diff"
+            git diff
+            exit 1
+          fi
+
+      - name: Run tests
+        working-directory: ${{ inputs.working-directory || vars.SKETCH_WORKING_DIR || '.'}}
+        run: |
+          if [ "${{ inputs.include-slow-tests }}" = "false" ]; then
+            echo "Running tests without slow tests (short mode, no race re-run)"
+            GOEXPERIMENT=synctest gotestsum --format testname --jsonfile test-results.json -- -short ./...
+          else
+            echo "Running full test suite including slow tests"
+            GOEXPERIMENT=synctest gotestsum --format testname --jsonfile test-results.json -- ./...
+            GOEXPERIMENT=synctest gotestsum --format testname --jsonfile test-results-race.json -- -race ./...
+          fi
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sketch-test-results-${{ github.run_id }}
+          path: |
+            ${{ inputs.working-directory || vars.SKETCH_WORKING_DIR || '.'}}/test-results.json
+            ${{ inputs.working-directory || vars.SKETCH_WORKING_DIR || '.'}}/test-results-race.json
+          retention-days: 30

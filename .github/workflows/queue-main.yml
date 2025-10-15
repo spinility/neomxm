@@ -1,0 +1,95 @@
+# Simplified Commit Queue
+#
+# (Force) push to "queue-main-$USER" a potential change, and
+# this job will push it main if it passes pre-commit and tests,
+# which will run in parallel. The push may fail if the commit
+# cannot be pushed cleanly because it needs to be rebased, which
+# will happen especially if another developer pushes a change at
+# roughly the same time.
+#
+# Please keep this file in sync with queue-dev.yml.
+
+name: Main Branch Commit Queue
+on:
+  push:
+    branches:
+      - "queue-main-*"
+
+permissions: read-all
+
+jobs:
+  formatting:
+    uses: ./.github/workflows/formatting.yml
+    permissions:
+      contents: write
+    with:
+      auto_fix: true
+
+  go-test:
+    needs: [formatting]
+    uses: ./.github/workflows/go_test.yml
+    permissions: read-all
+    with:
+      ref: ${{ needs.formatting.outputs.commit_sha }}
+      include-slow-tests: false
+
+  ui-test:
+    needs: [formatting]
+    uses: ./.github/workflows/webui_test.yml
+    permissions: read-all
+    with:
+      ref: ${{ needs.formatting.outputs.commit_sha }}
+
+  push-to-main:
+    runs-on: ubuntu-latest
+    needs: [go-test, ui-test, formatting]
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Push to main
+        id: push
+        run: |
+          COMMIT_TO_PUSH="HEAD"
+          if [[ "${{ needs.formatting.outputs.commit_sha }}" != "" ]]; then
+            echo "Using formatted commit: ${{ needs.formatting.outputs.commit_sha }}"
+            COMMIT_TO_PUSH="${{ needs.formatting.outputs.commit_sha }}"
+          fi
+
+          # Get the actual commit SHA that we're pushing
+          COMMIT_SHA=$(git rev-parse "${COMMIT_TO_PUSH}")
+          echo "commit_sha=${COMMIT_SHA}" >> $GITHUB_OUTPUT
+
+          # Ensure we have the latest main branch reference
+          git fetch origin main
+          
+          # Get the list of commits that will be pushed (in chronological order)
+          # Use FETCH_HEAD as the base to avoid rewriting local main reference
+          COMMITS_TO_NOTIFY=$(git log FETCH_HEAD.."${COMMIT_TO_PUSH}" --reverse --format="%H" | tr '\n' ' ')
+          echo "commits_to_notify=${COMMITS_TO_NOTIFY}" >> $GITHUB_OUTPUT
+          echo "Commits to be pushed and notified: ${COMMITS_TO_NOTIFY}"
+
+          git push https://${GITHUB_ACTOR}:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git "${COMMIT_TO_PUSH}":main
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Send Discord notifications for all pushed commits
+        if: success()
+        env:
+          DISCORD_WEBHOOK_FOR_COMMITS: ${{ secrets.DISCORD_WEBHOOK_FOR_COMMITS }}
+        run: |
+          COMMITS="${{ steps.push.outputs.commits_to_notify }}"
+          if [[ -z "$COMMITS" ]]; then
+            echo "No commits to notify about"
+            exit 0
+          fi
+          
+          echo "Sending Discord notifications for commits: $COMMITS"
+          for commit_sha in $COMMITS; do
+            echo "Sending notification for commit: $commit_sha"
+            git checkout "$commit_sha"
+            GITHUB_SHA="$commit_sha" python3 .github/scripts/discord_notify.py
+          done

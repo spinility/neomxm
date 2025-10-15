@@ -1,0 +1,468 @@
+httprr trace v1
+15709 2401
+POST https://api.anthropic.com/v1/messages HTTP/1.1
+Host: api.anthropic.com
+User-Agent: Go-http-client/1.1
+Content-Length: 15511
+Anthropic-Version: 2023-06-01
+Content-Type: application/json
+
+{
+ "model": "claude-sonnet-4-5-20250929",
+ "messages": [
+  {
+   "role": "user",
+   "content": [
+    {
+     "type": "text",
+     "text": "What tools are available to you? Please just list them briefly.",
+     "cache_control": {
+      "type": "ephemeral"
+     }
+    }
+   ]
+  }
+ ],
+ "max_tokens": 8192,
+ "tools": [
+  {
+   "name": "bash",
+   "description": "Executes shell commands via bash -c, returning combined stdout/stderr.\nBash state changes (working dir, variables, aliases) don't persist between calls.\n\nWith background=true, returns immediately, with output redirected to a file.\nUse background for servers/demos that need to stay running.\n\nMUST set slow_ok=true for potentially slow commands: builds, downloads,\ninstalls, tests, or any other substantive operation.\n\n\u003cpwd\u003e/\u003c/pwd\u003e",
+   "input_schema": {
+    "type": "object",
+    "required": [
+     "command"
+    ],
+    "properties": {
+     "command": {
+      "type": "string",
+      "description": "Shell to execute"
+     },
+     "slow_ok": {
+      "type": "boolean",
+      "description": "Use extended timeout"
+     },
+     "background": {
+      "type": "boolean",
+      "description": "Execute in background"
+     },
+     "detect_ports": {
+      "type": "boolean",
+      "description": "Whether to detect open ports from this process (default: false for foreground, true for background)"
+     }
+    }
+   }
+  },
+  {
+   "name": "keyword_search",
+   "description": "\nkeyword_search locates files with a search-and-filter approach.\nUse when navigating unfamiliar codebases with only conceptual understanding or vague user questions.\n\nEffective use:\n- Provide a detailed query for accurate relevance ranking\n- Prefer MANY SPECIFIC terms over FEW GENERAL ones (high precision beats high recall)\n- Order search terms by importance (most important first)\n- Supports regex search terms for flexible matching\n\nIMPORTANT: Do NOT use this tool if you have precise information like log lines, error messages, stack traces, filenames, or symbols. Use direct approaches (rg, cat, etc.) instead.\n",
+   "input_schema": {
+    "type": "object",
+    "required": [
+     "query",
+     "search_terms"
+    ],
+    "properties": {
+     "query": {
+      "type": "string",
+      "description": "A detailed statement of what you're trying to find or learn."
+     },
+     "search_terms": {
+      "type": "array",
+      "items": {
+       "type": "string"
+      },
+      "description": "List of search terms in descending order of importance."
+     }
+    }
+   }
+  },
+  {
+   "name": "patch",
+   "description": "File modification tool for precise text edits.\n\nOperations:\n- replace: Substitute unique text with new content\n- append_eof: Append new text at the end of the file\n- prepend_bof: Insert new text at the beginning of the file\n- overwrite: Replace the entire file with new content (automatically creates the file)\n\nUsage notes:\n- All inputs are interpreted literally (no automatic newline or whitespace handling)\n- For replace operations, oldText must appear EXACTLY ONCE in the file",
+   "input_schema": {
+    "type": "object",
+    "required": [
+     "path",
+     "patches"
+    ],
+    "properties": {
+     "path": {
+      "type": "string",
+      "description": "Path to the file to patch"
+     },
+     "patches": {
+      "type": "array",
+      "description": "List of patch requests to apply",
+      "items": {
+       "type": "object",
+       "required": [
+        "operation",
+        "newText"
+       ],
+       "properties": {
+        "operation": {
+         "type": "string",
+         "enum": [
+          "replace",
+          "append_eof",
+          "prepend_bof",
+          "overwrite"
+         ],
+         "description": "Type of operation to perform"
+        },
+        "oldText": {
+         "type": "string",
+         "description": "Text to locate for the operation (must be unique in file, required for replace)"
+        },
+        "newText": {
+         "type": "string",
+         "description": "The new text to use (empty for deletions)"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  {
+   "name": "think",
+   "description": "Think out loud, take notes, form plans. Has no external effects.",
+   "input_schema": {
+    "type": "object",
+    "required": [
+     "thoughts"
+    ],
+    "properties": {
+     "thoughts": {
+      "type": "string",
+      "description": "The thoughts, notes, or plans to record"
+     }
+    }
+   }
+  },
+  {
+   "name": "todo_read",
+   "description": "Reads the current todo list. Use frequently to track progress and understand what's pending.",
+   "input_schema": {
+    "type": "object",
+    "properties": {}
+   }
+  },
+  {
+   "name": "todo_write",
+   "description": "todo_write: Creates and manages a structured task list for tracking work and communicating progress to users. Use early and often.\n\nUse for:\n- multi-step tasks\n- complex work\n- when users provide multiple requests\n- conversations that start trivial but grow in scope\n- when users request additional work (directly or via feedback)\n\nSkip for:\n- trivial single-step tasks\n- purely conversational exchanges\n\nUpdate dynamically as work evolves - conversations can spawn tasks, simple tasks can become complex, and new discoveries may require additional work.\n\nRules:\n- Update immediately when task states or task list changes\n- Only one task \"in-progress\" at any time\n- Each update completely replaces the task list - include all tasks (past and present)\n- Never modify or delete completed tasks\n- Queued and in-progress tasks may be restructured as understanding evolves\n- Tasks should be atomic, clear, precise, and actionable\n- If the user adds new tasks: append, don't replace\n",
+   "input_schema": {
+    "type": "object",
+    "required": [
+     "tasks"
+    ],
+    "properties": {
+     "tasks": {
+      "type": "array",
+      "description": "Array of tasks to write",
+      "items": {
+       "type": "object",
+       "required": [
+        "id",
+        "task",
+        "status"
+       ],
+       "properties": {
+        "id": {
+         "type": "string",
+         "description": "stable, unique hyphenated slug"
+        },
+        "task": {
+         "type": "string",
+         "description": "actionable step in active tense, sentence case, plain text only, displayed to user"
+        },
+        "status": {
+         "type": "string",
+         "enum": [
+          "queued",
+          "in-progress",
+          "completed"
+         ],
+         "description": "current task status"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  {
+   "name": "done",
+   "description": "Use this tool when you have achieved the user's goal. The parameters form a checklist which you should evaluate.",
+   "input_schema": {
+    "type": "object",
+    "properties": {
+     "checked_guidance": {
+      "type": "object",
+      "required": [
+       "status"
+      ],
+      "properties": {
+       "status": {
+        "type": "string",
+        "enum": [
+         "yes",
+         "no",
+         "n/a"
+        ]
+       },
+       "comments": {
+        "type": "string"
+       }
+      },
+      "description": "Checked for and followed any directory-specific guidance files for all modified files."
+     },
+     "tested": {
+      "type": "object",
+      "required": [
+       "status"
+      ],
+      "properties": {
+       "status": {
+        "type": "string",
+        "enum": [
+         "yes",
+         "no",
+         "n/a"
+        ]
+       },
+       "comments": {
+        "type": "string"
+       }
+      },
+      "description": "If code was changed, tests were written or updated, and all tests pass."
+     },
+     "code_reviewed": {
+      "type": "object",
+      "required": [
+       "status"
+      ],
+      "properties": {
+       "status": {
+        "type": "string",
+        "enum": [
+         "yes",
+         "no",
+         "n/a"
+        ]
+       },
+       "comments": {
+        "type": "string"
+       }
+      },
+      "description": "If any commits were made, the codereview tool was run and its output addressed."
+     },
+     "git_commit": {
+      "type": "object",
+      "required": [
+       "status"
+      ],
+      "properties": {
+       "status": {
+        "type": "string",
+        "enum": [
+         "yes",
+         "no",
+         "n/a"
+        ]
+       },
+       "comments": {
+        "type": "string"
+       }
+      },
+      "description": "All code changes were committed. A git hook adds Co-Authored-By and Change-ID trailers. The git user is already configured correctly."
+     }
+    }
+   }
+  },
+  {
+   "name": "codereview",
+   "description": "Run an automated code review before presenting git commits to the user. Call if/when you've completed your current work and are ready for user feedback.",
+   "input_schema": {
+    "type": "object",
+    "properties": {
+     "timeout": {
+      "type": "string",
+      "description": "Timeout as a Go duration string (default: 1m)",
+      "default": "1m"
+     }
+    }
+   }
+  },
+  {
+   "name": "about_sketch",
+   "description": "Provides information about Sketch.\n\nWhen to use this tool:\n\n- The user is asking how to USE Sketch itself (not asking Sketch to perform a task)\n- The user has questions about Sketch functionality, setup, or capabilities\n- The user needs help with Sketch-specific concepts like running commands, secrets management, git integration\n- The query is about \"How do I do X in Sketch?\" or \"Is it possible to Y in Sketch?\" or just \"Help\"\n- The user is confused about how a Sketch feature works or how to access it\n- You need to know how to interact with the host environment, e.g. port forwarding or pulling changes the user has made outside of Sketch\n",
+   "input_schema": {
+    "type": "object",
+    "properties": {}
+   }
+  },
+  {
+   "name": "browser_navigate",
+   "description": "Navigate the browser to a specific URL and wait for page to load",
+   "input_schema": {
+    "type": "object",
+    "properties": {
+     "url": {
+      "type": "string",
+      "description": "The URL to navigate to"
+     },
+     "timeout": {
+      "type": "string",
+      "description": "Timeout as a Go duration string (default: 15s)"
+     }
+    },
+    "required": [
+     "url"
+    ]
+   }
+  },
+  {
+   "name": "browser_eval",
+   "description": "Evaluate JavaScript in the browser context.\nYour go-to tool for interacting with content: clicking buttons, typing, getting content, scrolling, resizing, waiting for content/selector to be ready, etc.",
+   "input_schema": {
+    "type": "object",
+    "properties": {
+     "expression": {
+      "type": "string",
+      "description": "JavaScript expression to evaluate"
+     },
+     "timeout": {
+      "type": "string",
+      "description": "Timeout as a Go duration string (default: 15s)"
+     },
+     "await": {
+      "type": "boolean",
+      "description": "If true, wait for promises to resolve and return their resolved value (default: true)"
+     }
+    },
+    "required": [
+     "expression"
+    ]
+   }
+  },
+  {
+   "name": "browser_resize",
+   "description": "Resize the browser window to a specific width and height",
+   "input_schema": {
+    "type": "object",
+    "properties": {
+     "width": {
+      "type": "integer",
+      "description": "Window width in pixels"
+     },
+     "height": {
+      "type": "integer",
+      "description": "Window height in pixels"
+     },
+     "timeout": {
+      "type": "string",
+      "description": "Timeout as a Go duration string (default: 15s)"
+     }
+    },
+    "required": [
+     "width",
+     "height"
+    ]
+   }
+  },
+  {
+   "name": "browser_recent_console_logs",
+   "description": "Get recent browser console logs",
+   "input_schema": {
+    "type": "object",
+    "properties": {
+     "limit": {
+      "type": "integer",
+      "description": "Maximum number of log entries to return (default: 100)"
+     }
+    }
+   }
+  },
+  {
+   "name": "browser_clear_console_logs",
+   "description": "Clear all captured browser console logs",
+   "input_schema": {
+    "type": "object",
+    "properties": {}
+   }
+  },
+  {
+   "name": "browser_take_screenshot",
+   "description": "Take a screenshot of the page or a specific element",
+   "input_schema": {
+    "type": "object",
+    "properties": {
+     "selector": {
+      "type": "string",
+      "description": "CSS selector for the element to screenshot (optional)"
+     },
+     "timeout": {
+      "type": "string",
+      "description": "Timeout as a Go duration string (default: 15s)"
+     }
+    }
+   }
+  },
+  {
+   "name": "read_image",
+   "description": "Read an image file (such as a screenshot) and encode it for sending to the LLM",
+   "input_schema": {
+    "type": "object",
+    "properties": {
+     "path": {
+      "type": "string",
+      "description": "Path to the image file to read"
+     },
+     "timeout": {
+      "type": "string",
+      "description": "Timeout as a Go duration string (default: 15s)"
+     }
+    },
+    "required": [
+     "path"
+    ]
+   }
+  }
+ ],
+ "system": [
+  {
+   "text": "You are the expert software engineer and architect powering Sketch,\nan agentic coding environment that helps users accomplish coding tasks through autonomous analysis and implementation.\n\n\u003cworkflow\u003e\nStart by asking concise clarifying questions as needed.\nOnce the intent is clear, work autonomously.\nWhenever possible, do end-to-end testing, to ensure fully working functionality.\nAim for a small diff size while thoroughly completing the requested task.\nPrioritize thoughtful analysis and critical engagement over agreeability.\n\nBreak down the overall goal into a series of smaller steps.\nUse the todo_read and todo_write tools to organize and track your work systematically.\n\nFollow this broad workflow:\n\n- Think about how the current step fits into the overall plan.\n- Do research. Good tool choices: bash, think, keyword_search\n- Make edits.\n- If you have completed a standalone chunk of work, make a git commit.\n- Update your todo task list.\n- Repeat.\n\nTo make edits reliably and efficiently, first think about the intent of the edit,\nand what set of patches will achieve that intent.\nThen use the patch tool to make those edits. Combine all edits to any given file into a single patch tool call.\n\nYou may run tool calls in parallel.\n\nComplete every task exhaustively - no matter how repetitive or tedious.\nPartial work, pattern demonstrations, or stubs with TODOs are not acceptable, unless explicitly permitted by the user.\n\nThe done tool provides a checklist of items you MUST verify and\nreview before declaring that you are done. Before executing\nthe done tool, run all the tools the done tool checklist asks\nfor, including creating a git commit. Do not forget to run tests.\n\n\n\n\n\nWhen communicating with the user, take it easy on the emoji, don't be over-enthusiastic, and be concise.\n\u003c/workflow\u003e\n\n\u003cstyle\u003e\nDefault coding guidelines:\n- Clear is better than clever.\n- Minimal inline comments: non-obvious logic and key decisions only.\n- When no commit message style guidance is provided: write a single lowercase line starting with an imperative verb, ≤50 chars, no period\n\u003c/style\u003e\n\n\u003csystem_info\u003e\n\u003cplatform\u003e\nlinux/amd64\n\u003c/platform\u003e\n\u003cpwd\u003e\n/\n\u003c/pwd\u003e\n\u003ccurrent_date\u003e\n2025-07-25\n\u003c/current_date\u003e\n\u003c/system_info\u003e\n\n\u003cgit_info\u003e\n\u003cgit_root\u003e\n\n\u003c/git_root\u003e\n\u003cHEAD\u003e\nHEAD\n\u003c/HEAD\u003e\n\n\u003c/git_info\u003e\n\n",
+   "type": "text",
+   "cache_control": {
+    "type": "ephemeral"
+   }
+  }
+ ]
+}HTTP/2.0 200 OK
+Anthropic-Organization-Id: 3c473a21-7208-450a-a9f8-80aebda45c1b
+Anthropic-Ratelimit-Input-Tokens-Limit: 2000000
+Anthropic-Ratelimit-Input-Tokens-Remaining: 1998000
+Anthropic-Ratelimit-Input-Tokens-Reset: 2025-10-02T23:29:08Z
+Anthropic-Ratelimit-Output-Tokens-Limit: 400000
+Anthropic-Ratelimit-Output-Tokens-Remaining: 400000
+Anthropic-Ratelimit-Output-Tokens-Reset: 2025-10-02T23:29:13Z
+Anthropic-Ratelimit-Requests-Limit: 4000
+Anthropic-Ratelimit-Requests-Remaining: 3999
+Anthropic-Ratelimit-Requests-Reset: 2025-10-02T23:29:07Z
+Anthropic-Ratelimit-Tokens-Limit: 2400000
+Anthropic-Ratelimit-Tokens-Remaining: 2398000
+Anthropic-Ratelimit-Tokens-Reset: 2025-10-02T23:29:08Z
+Cf-Cache-Status: DYNAMIC
+Cf-Ray: 9887fae32b936894-SJC
+Content-Type: application/json
+Date: Thu, 02 Oct 2025 23:29:13 GMT
+Request-Id: req_011CTjEu9ogfuCjwuZkNQiKs
+Server: cloudflare
+Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
+Via: 1.1 google
+X-Envoy-Upstream-Service-Time: 5967
+X-Robots-Tag: none
+
+{"id":"msg_017iRjNMf5CaVpwoGo5wSeiy","type":"message","role":"assistant","model":"claude-sonnet-4-5-20250929","content":[{"type":"text","text":"Here are the tools available to me:\n\n- **bash** - Execute shell commands\n- **keyword_search** - Search for files by concept/keywords in unfamiliar codebases\n- **patch** - Modify files with precise text edits (replace, append, prepend, overwrite)\n- **think** - Record thoughts, notes, and plans (internal use)\n- **todo_read** / **todo_write** - Manage task lists for tracking work\n- **done** - Mark work as complete with a verification checklist\n- **codereview** - Run automated code review on commits\n- **about_sketch** - Get information about Sketch itself\n- **browser_navigate** - Navigate browser to a URL\n- **browser_eval** - Execute JavaScript in browser context\n- **browser_resize** - Resize browser window\n- **browser_recent_console_logs** - Get browser console logs\n- **browser_clear_console_logs** - Clear browser console logs\n- **browser_take_screenshot** - Capture screenshots\n- **read_image** - Read and encode image files"}],"stop_reason":"end_turn","stop_sequence":null,"usage":{"input_tokens":3,"cache_creation_input_tokens":3811,"cache_read_input_tokens":0,"cache_creation":{"ephemeral_5m_input_tokens":3811,"ephemeral_1h_input_tokens":0},"output_tokens":244,"service_tier":"standard"}}

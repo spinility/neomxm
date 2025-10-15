@@ -1,0 +1,11 @@
+node_modules
+
+# Local environment variables
+.envrc
+.env
+
+# goreleaser builds
+dist
+
+# makefile artifact
+/sketch-neomxm

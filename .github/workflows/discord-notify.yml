@@ -1,0 +1,21 @@
+name: Discord Notification
+on:
+  push:
+    branches:
+      - main
+
+permissions: read-all
+
+jobs:
+  notify-discord:
+    runs-on: ubuntu-latest
+    if: github.event.repository.fork == false
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Send Discord notification
+        env:
+          DISCORD_WEBHOOK_FOR_COMMITS: ${{ secrets.DISCORD_WEBHOOK_FOR_COMMITS }}
+        run: python3 .github/scripts/discord_notify.py
