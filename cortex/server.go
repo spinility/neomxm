@@ -169,6 +169,26 @@ func (s *Server) handleChat(w http.ResponseWriter, r *http.Request) {
 	// Convert to LLM request
 	llmReq := s.convertToLLMRequest(&req)
 
+	// Debug: log request details
+	slog.InfoContext(ctx, "CORTEX RECEIVED REQUEST",
+		"num_messages", len(llmReq.Messages),
+		"num_tools", len(llmReq.Tools),
+		"has_system", len(llmReq.System) > 0)
+	for i, msg := range llmReq.Messages {
+		slog.InfoContext(ctx, "MESSAGE",
+			"index", i,
+			"role", msg.Role,
+			"num_content", len(msg.Content))
+		for j, c := range msg.Content {
+			slog.InfoContext(ctx, "CONTENT",
+				"msg_index", i,
+				"content_index", j,
+				"type", c.Type,
+				"text_len", len(c.Text),
+				"has_tool_result", len(c.ToolResult) > 0)
+		}
+	}
+
 	// Process through cortex
 	resp, err := s.cortex.ProcessRequest(ctx, llmReq)
 	if err != nil {
